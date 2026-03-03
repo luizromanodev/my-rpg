@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meu RPG Vanilla JS</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        /* Fundo com gradiente para clima de dungeon */
+        background: radial-gradient(circle at top, #34495e, #1a252f, #0d1117);
+        color: white;
+        padding-top: 2rem;
+        min-height: 100vh;
+      }
+
+      /* Estilizando os painéis dos personagens */
+      .card {
+        background-color: rgba(44, 62, 80, 0.85);
+        color: white;
+        border: 2px solid #5d6d7e;
+        border-radius: 12px;
+        backdrop-filter: blur(5px);
+      }
+
+      /* Animação suave nos botões */
+      .btn {
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+      }
+
+      /* Caixa de texto do diário */
+      #battle-log {
+        height: 220px;
+        overflow-y: auto;
+        background-color: rgba(13, 17, 23, 0.9);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #5d6d7e;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.95rem;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Barras de vida um pouco mais gordinhas */
+      .progress {
+        height: 20px;
+        background-color: #212f3c;
+        border: 1px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-warning text-shadow m-0">⚔️ Arena de Batalha</h1>
+        <div
+          class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
+        >
+          💰 Ouro: <span id="gold-counter">0</span>
+        </div>
+      </div>
+
+      <div class="row align-items-center mb-4">
+        <div class="col-md-4">
+          <div class="card p-4 shadow-lg text-center">
+            <h3 id="hero-name" class="fw-bold text-info">Carregando...</h3>
+            <span id="hero-potions" class="badge bg-primary mb-3"
+              >Poções: 0</span
+            >
+
+            <p class="mb-1 fw-bold">HP: <span id="hero-hp-text">0/0</span></p>
+            <div class="progress mb-2">
+              <div
+                id="hero-hp-bar"
+                class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style="width: 100%"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4 text-center my-4 my-md-0">
+          <h2
+            class="text-danger mb-4 fw-bold"
+            style="text-shadow: 2px 2px 4px #000"
+          >
+            VS
+          </h2>
+
+          <div class="d-grid gap-3 px-3">
+            <button
+              id="btn-attack"
+              class="btn btn-danger btn-lg fw-bold shadow border-dark"
+              disabled
+            >
+              ATACAR ⚔️
+            </button>
+            <button
+              id="btn-potion"
+              class="btn btn-success btn-lg fw-bold shadow border-dark"
+              disabled
+            >
+              USAR POÇÃO 💊
+            </button>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card p-4 shadow-lg text-center">
+            <h3 id="enemy-name" class="fw-bold text-danger">Carregando...</h3>
+            <span class="badge bg-secondary mb-3">Inimigo</span>
+
+            <p class="mb-1 fw-bold">HP: <span id="enemy-hp-text">0/0</span></p>
+            <div class="progress mb-2">
+              <div
+                id="enemy-hp-bar"
+                class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style="width: 100%"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <h4 class="text-light border-bottom border-secondary pb-2">
+            📜 Diário de Combate
+          </h4>
+          <div id="battle-log"></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="index.js"></script>
+  </body>
+</html>

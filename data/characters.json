@@ -1,0 +1,48 @@
+[
+  {
+    "id": "c1",
+    "name": "Arthur",
+    "class": "Guerreiro",
+    "level": 1,
+    "stats": {
+      "max_hp": 120,
+      "current_hp": 120,
+      "base_attack": 15,
+      "base_defense": 5,
+      "speed": 8
+    },
+    "equipment": {
+      "weapon": 101,
+      "armor": 301
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
+  },
+  {
+    "id": "c2",
+    "name": "Elara",
+    "class": "Maga",
+    "level": 1,
+    "stats": {
+      "max_hp": 70,
+      "current_hp": 70,
+      "base_attack": 5,
+      "base_defense": 2,
+      "speed": 12
+    },
+    "equipment": {
+      "weapon": 102,
+      "armor": 302
+    },
+    "inventory": [
+      {
+        "item_id": 2,
+        "quantity": 5
+      }
+    ]
+  }
+]

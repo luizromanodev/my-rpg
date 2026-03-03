@@ -1,0 +1,50 @@
+[
+  {
+    "id": "m1",
+    "name": "Slime Verde",
+    "level": 1,
+    "stats": {
+      "max_hp": 30,
+      "current_hp": 30,
+      "base_attack": 8,
+      "base_defense": 2,
+      "speed": 5
+    },
+    "rewards": {
+      "exp": 15,
+      "gold": 5,
+      "drops": [
+        {
+          "item_id": 1,
+          "chance": 0.3
+        }
+      ]
+    }
+  },
+  {
+    "id": "m2",
+    "name": "Goblin Saqueador",
+    "level": 3,
+    "stats": {
+      "max_hp": 65,
+      "current_hp": 65,
+      "base_attack": 14,
+      "base_defense": 6,
+      "speed": 10
+    },
+    "rewards": {
+      "exp": 45,
+      "gold": 15,
+      "drops": [
+        {
+          "item_id": 101,
+          "chance": 0.1
+        },
+        {
+          "item_id": 1,
+          "chance": 0.5
+        }
+      ]
+    }
+  }
+]

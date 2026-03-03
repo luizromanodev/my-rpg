@@ -1,0 +1,39 @@
+[
+  {
+    "id": 1,
+    "name": "Poção de Vida",
+    "type": "consumable",
+    "value": 50
+  },
+  {
+    "id": 2,
+    "name": "Poção de Mana",
+    "type": "consumable",
+    "value": 30
+  },
+  {
+    "id": 101,
+    "name": "Espada Longa",
+    "type": "weapon",
+    "attack": 12
+  },
+  {
+    "id": 102,
+    "name": "Cajado de Aprendiz",
+    "type": "weapon",
+    "attack": 3,
+    "magic": 10
+  },
+  {
+    "id": 301,
+    "name": "Cota de Malha",
+    "type": "armor",
+    "defense": 15
+  },
+  {
+    "id": 302,
+    "name": "Manto de Tecido",
+    "type": "armor",
+    "defense": 3
+  }
+]

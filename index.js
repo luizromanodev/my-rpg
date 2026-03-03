@@ -94,6 +94,9 @@ function updateUI() {
   // Atualiza Inimigo
   uiEnemyName.innerText = enemy.name;
   uiEnemyHpText.innerText = `${enemy.stats.current_hp} / ${enemy.stats.max_hp}`;
+  const enemyHpVisual = Math.max(0, enemy.stats.current_hp);
+  uiEnemyHpText.innerText = `${enemyHpVisual} / ${enemy.stats.max_hp}`;
+
   const enemyHpPercent = (enemy.stats.current_hp / enemy.stats.max_hp) * 100;
   uiEnemyHpBar.style.width = `${Math.max(0, enemyHpPercent)}%`;
 
@@ -206,9 +209,19 @@ function executeAttack(attackerType) {
 function checkBattleStatus() {
   if (gameState.heroLive.stats.current_hp <= 0) {
     logMessage('💀 GAME OVER! O herói foi derrotado.', 'text-danger fw-bold');
+
+    btnAttack.disabled = true;
+    btnPotion.disabled = true;
   } else if (gameState.enemyLive.stats.current_hp <= 0) {
     logMessage('🏆 VITÓRIA! O inimigo foi derrotado.', 'text-success fw-bold');
+
     giveReward();
+    btnAttack.disabled = true;
+    btnPotion.disabled = true;
+
+    setTimeout(() => {
+      generateNewEnemy();
+    }, 2000);
   } else {
     gameState.whoTurn = gameState.whoTurn === "hero" ? "enemy" : "hero";
     nextTurn();
@@ -232,4 +245,20 @@ function enemyTurn() {
   setTimeout(() => {
     executeAttack("enemy");
   }, 1000);
+}
+
+function generateNewEnemy() {
+  logMessage(`--- NOVA BATALHA ---`, "text-secondary fw-bold");
+
+  const randomIndex = Math.floor(Math.random() * database.enemies.length);
+  const newEnemy = database.enemies[randomIndex];
+
+  gameState.enemyLive = structuredClone(newEnemy);
+  gameState.whoTurn = "hero";
+
+  updateUI();
+  logMessage(`🔥 Um ${gameState.enemyLive.name} apareceu!`, "text-warning fw-bold");
+
+  btnAttack.disabled = false;
+  btnPotion.disabled = false;
 }

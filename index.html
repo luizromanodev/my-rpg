@@ -10,14 +10,12 @@
     />
     <style>
       body {
-        /* Fundo com gradiente para clima de dungeon */
         background: radial-gradient(circle at top, #34495e, #1a252f, #0d1117);
         color: white;
         padding-top: 2rem;
         min-height: 100vh;
       }
 
-      /* Estilizando os painéis dos personagens */
       .card {
         background-color: rgba(44, 62, 80, 0.85);
         color: white;
@@ -26,7 +24,6 @@
         backdrop-filter: blur(5px);
       }
 
-      /* Animação suave nos botões */
       .btn {
         transition:
           transform 0.2s,
@@ -37,7 +34,6 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
       }
 
-      /* Caixa de texto do diário */
       #battle-log {
         height: 220px;
         overflow-y: auto;
@@ -50,7 +46,6 @@
         box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
       }
 
-      /* Barras de vida um pouco mais gordinhas */
       .progress {
         height: 20px;
         background-color: #212f3c;
@@ -94,7 +89,7 @@
 
       <div id="screen-tavern" class="row d-none mt-5 text-center">
         <div class="col-12">
-          <h2 class="text-info mb-4">🍺 Taverna: Monte seu Time</h2>
+          <h2 class="text-info mb-4">Taverna: Monte seu Time</h2>
           <p>
             Em breve você poderá recrutar Curandeiras, Tanques e Arqueiros aqui.
           </p>
@@ -102,14 +97,14 @@
             id="btn-start-adventure"
             class="btn btn-warning btn-lg fw-bold shadow mt-3"
           >
-            Ir para a Arena (Teste) ⚔️
+            Ir para a Arena (Teste)
           </button>
         </div>
       </div>
 
       <div id="screen-battle" class="d-none">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h1 class="text-warning text-shadow m-0">⚔️ Arena de Batalha</h1>
+          <h1 class="text-warning text-shadow m-0">Arena de Batalha</h1>
           <div
             class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
           >
@@ -148,14 +143,14 @@
                 class="btn btn-danger btn-lg fw-bold shadow border-dark"
                 disabled
               >
-                ATACAR ⚔️
+                ATACAR
               </button>
               <button
                 id="btn-potion"
                 class="btn btn-success btn-lg fw-bold shadow border-dark"
                 disabled
               >
-                USAR POÇÃO 💊
+                USAR POÇÃO
               </button>
             </div>
           </div>
@@ -181,7 +176,7 @@
         <div class="row">
           <div class="col-12">
             <h4 class="text-light border-bottom border-secondary pb-2">
-              📜 Diário de Combate
+              Diário de Combate
             </h4>
             <div id="battle-log"></div>
           </div>

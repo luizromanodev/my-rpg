@@ -4,22 +4,30 @@ export const database = {
   enemies: [],
 };
 
+const API_URL = 'http://localhost:3000/api';
+
 export async function loadDatabase() {
   try {
+    console.log("Conectanto ao servidor...");
+
     const [resCharacters, resItems, resEnemies] = await Promise.all([
-      fetch('/data/characters.json'),
-      fetch('/data/items.json'),
-      fetch('/data/enemies.json'),
+      fetch(`${API_URL}/characters`),
+      fetch(`${API_URL}/items`),
+      fetch(`${API_URL}/enemies`),
     ]);
+
+    if (!resCharacters.ok || !resItems.ok || !resEnemies.ok) {
+      throw new Error('Falha ao comunicar com a API');
+    }
 
     database.characters = await resCharacters.json();
     database.items = await resItems.json();
     database.enemies = await resEnemies.json();
 
-    console.log('Database loaded successfully');
+    console.log('Dados da API carregados com sucesso!');
     return true;
   } catch (error) {
-    console.error('Error loading database:', error);
+    console.error('Erro na API:', error);
     return false;
   }
 }

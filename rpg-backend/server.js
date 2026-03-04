@@ -20,20 +20,46 @@ const readJsonFile = (fileName, res) => {
   }
 };
 
-// ---------------------------------------------------
-// ROTAS DA API
-// ---------------------------------------------------
+// Caminho do banco de contas
+const accountsPath = path.join(__dirname, 'data', 'accounts.json');
 
+// --- ROTAS DO JOGO ---
 app.get('/', (req, res) => res.send('API do RPG está funcionando!'));
 
 app.get('/api/characters', (req, res) => readJsonFile('characters.json', res));
 app.get('/api/items', (req, res) => readJsonFile('items.json', res));
 app.get('/api/enemies', (req, res) => readJsonFile('enemies.json', res));
 
-// ---------------------------------------------------
-// SERVIDOR ON
-// ---------------------------------------------------
+// --- ROTAS DE CONTAS ---
+app.post('/api/register', (req, res) => {
+  const { username, password } = req.body;
+  let accounts = JSON.parse(fs.readFileSync(accountsPath, 'utf-8'));
 
+  if (accounts[username]) {
+    return res.status(400).json({ error: 'Usuário já existe' });
+  }
+
+  accounts[username] = {
+    password: password,
+    saveData: { gold: 0, team: [] }
+  };
+
+  fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
+  res.status(201).json({ message: 'Conta criada com sucesso' });
+})
+
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  const accounts = JSON.parse(fs.readFileSync(accountsPath, 'utf-8'));
+
+  if (accounts[username] && accounts[username].password === password) {
+    res.status(200).json({ message: 'Login bem-sucedido', saveData: accounts[username].saveData });
+  } else {
+    res.status(401).json({ error: 'Usuario ou senha inválidos' });
+  }
+});
+
+// --- SERVIDOR ON ---
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);
 });

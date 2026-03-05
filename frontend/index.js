@@ -28,6 +28,10 @@ const turnIndicator = document.getElementById("turn-indicator");
 const dungeonName = document.getElementById("dungeon-name");
 const dungeonRoom = document.getElementById("dungeon-room");
 
+const screenMap = document.getElementById("screen-map");
+const worldMapsContainer = document.getElementById("world-maps-container");
+const mapGoldCounter = document.getElementById("map-gold-counter");
+
 // ==========================================
 // 2. ESTADO DO JOGO E SAVE
 // ==========================================
@@ -39,8 +43,41 @@ let gameState = {
   activeCharacter: null,
   selectedTarget: null,
   currentRoom: 1,
-  maxRooms: 3,
+  maxRooms: 10,
+  currentMapId: null,
 };
+
+const campaignMaps = [
+  {
+    id: "map_1",
+    name: "Caverna dos Goblins",
+    requiredClears: 0,
+    mobsNormal: ["Slime Verde", "Morcego Gigante", "Goblin Menor"],
+    mobsElite: ["Goblin Guerreiro", "Lobo Atroz"],
+    miniBoss: ["Xamã Goblin"],
+    boss: ["Rei Goblin"],
+  },
+  {
+    id: "map_2",
+    name: "Cidade Soterrada",
+    requiredClears: 1,
+    mobsNormal: ["Esqueleto Raso", "Rato Zumbi", "Ladrão de Tumbas"],
+    mobsElite: ["Cavaleiro Caído", "Aparição Sombria"],
+    miniBoss: ["Necromante Aprendiz"],
+    boss: ["Lorde Esqueleto"],
+  },
+  {
+    id: "map_3",
+    name: "Pico Congelado",
+    requiredClears: 2,
+    mobsNormal: ["Lobo do Gelo", "Elemental de Neve", "Yeti Jovem"],
+    mobsElite: ["Golem de Gelo", "Bruxa da Nevasca"],
+    miniBoss: ["Dragão Branco Filhote"],
+    boss: ["Rei do Inverno"],
+  },
+];
+
+myGroup.dungeonsCleared = 0;
 
 // ==========================================
 // 3. GERENCIAMENTO DE TELAS E CONTAS
@@ -48,6 +85,7 @@ let gameState = {
 function showScreen(screenId) {
   screenLogin.classList.add("d-none");
   screenTavern.classList.add("d-none");
+  screenMap.classList.add("d-none");
   screenBattle.classList.add("d-none");
   document.getElementById(screenId).classList.remove("d-none");
 }
@@ -89,7 +127,8 @@ async function handleAccount(action) {
           myGroup.members = data.saveData.team;
 
           setTimeout(() => {
-            showScreen("screen-battle");
+            renderMapScreen();
+            showScreen("screen-map");
             startRoom();
           }, 1000);
         } else {
@@ -123,8 +162,8 @@ btnStartAdventure.addEventListener("click", async () => {
     console.error("Erro ao salvar time:", err);
   }
 
-  showScreen("screen-battle");
-  startRoom();
+  renderMapScreen();
+  showScreen("screen-map");
 });
 
 // ==========================================
@@ -216,6 +255,49 @@ function renderTavern() {
 
     col.appendChild(card);
     rosterContainer.appendChild(col);
+  });
+}
+
+// ==========================================
+// RENDERIZAR MAPA MUNDI
+// ==========================================
+function renderMapScreen() {
+  mapGoldCounter.innerText = myGroup.gold;
+  worldMapsContainer.innerHTML = "";
+  campaignMaps.forEach((map) => {
+    // Verifica se o jogador tem os requisitos para entrar neste mapa
+    const isUnlocked = myGroup.dungeonsCleared >= map.requiredClears;
+
+    const col = document.createElement("div");
+    col.className = "col-md-8 mb-3";
+
+    const card = document.createElement("div");
+    card.className = `card p-3 border-2 ${isUnlocked ? "border-info bg-dark" : "border-secondary bg-secondary opacity-75"}`;
+    card.style.cursor = isUnlocked ? "pointer" : "not-allowed";
+
+    card.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="${isUnlocked ? "text-warning" : "text-dark"} m-0">${isUnlocked ? "🗺️" : "🔒"} ${map.name}</h4>
+          <small class="${isUnlocked ? "text-light" : "text-dark"}">10 Salas (Boss: ${map.boss[0]})</small>
+        </div>
+        <button class="btn ${isUnlocked ? "btn-primary" : "btn-secondary"} fw-bold" ${!isUnlocked ? "disabled" : ""}>
+          ${isUnlocked ? "ENTRAR" : "BLOQUEADO"}
+        </button>
+      </div>
+    `;
+
+    if (isUnlocked) {
+      card.addEventListener("click", () => {
+        gameState.currentMapId = map.id;
+        gameState.currentRoom = 1;
+        showScreen("screen-battle");
+        startRoom();
+      });
+    }
+
+    col.appendChild(card);
+    worldMapsContainer.appendChild(col);
   });
 }
 

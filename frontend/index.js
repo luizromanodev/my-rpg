@@ -33,7 +33,14 @@ const dungeonRoom = document.getElementById("dungeon-room");
 // ==========================================
 let currentUser = null;
 let myGroup = { name: "Grupo do Herói", gold: 0, members: [] };
-let gameState = { heroLive: null, enemyLive: null, whoTurn: "hero" };
+let gameState = {
+  enemiesLive: [],
+  turnQueue: [],
+  activeCharacter: null,
+  selectedTarget: null,
+  currentRoom: 1,
+  maxRooms: 3
+};
 
 // ==========================================
 // 3. GERENCIAMENTO DE TELAS E CONTAS
@@ -80,20 +87,11 @@ async function handleAccount(action) {
 
         if (data.saveData.team && data.saveData.team.length === 3) {
           myGroup.members = data.saveData.team;
-          gameState.heroLive = myGroup.members[0];
 
-          const randomIndex = Math.floor(Math.random() * database.enemies.length);
-          gameState.enemyLive = structuredClone(database.enemies[randomIndex]);
-          gameState.whoTurn = "hero";
-
-          updateUI();
-          battleLog.innerHTML = "";
-          logMessage(`Bem-vindo de volta! Um ${gameState.enemyLive.name} apareceu!`, "text-warning fw-bold");
-
-          btnAttack.disabled = false;
-          btnPotion.disabled = false;
-
-          setTimeout(() => showScreen("screen-battle"), 1000);
+          setTimeout(() => {
+            showScreen("screen-battle");
+            startRoom();
+          }, 1000);
         } else {
           renderTavern();
           setTimeout(() => showScreen("screen-tavern"), 1000);
@@ -110,11 +108,10 @@ async function handleAccount(action) {
 btnLogin.addEventListener("click", () => handleAccount("login"));
 btnRegister.addEventListener("click", () => handleAccount("register"));
 
-// Configura e inicia a batalha
+// Configura e inicia a batalha a partir da Taverna
 btnStartAdventure.addEventListener("click", async () => {
   if (myGroup.members.length !== 3) return;
 
-  // Envia o time para salvar no servidor
   try {
     await fetch('http://localhost:3000/api/save-team', {
       method: 'POST',
@@ -127,19 +124,7 @@ btnStartAdventure.addEventListener("click", async () => {
   }
 
   showScreen("screen-battle");
-
-  gameState.heroLive = myGroup.members[0];
-
-  const randomIndex = Math.floor(Math.random() * database.enemies.length);
-  gameState.enemyLive = structuredClone(database.enemies[randomIndex]);
-  gameState.whoTurn = "hero";
-
-  updateUI();
-  battleLog.innerHTML = "";
-  logMessage(`Um ${gameState.enemyLive.name} selvagem apareceu!`, "text-warning fw-bold");
-
-  btnAttack.disabled = false;
-  btnPotion.disabled = false;
+  startRoom();
 });
 
 // ==========================================
@@ -160,103 +145,15 @@ async function init() {
 }
 
 // ==========================================
-// 5. EVENTOS DE CLIQUE
+// 5. SELEÇÃO DE EQUIPE (TAVERNA)
 // ==========================================
-btnAttack.addEventListener("click", () => {
-  if (gameState.whoTurn === "hero") {
-    btnAttack.disabled = true;
-    btnPotion.disabled = true;
-    executeAttack("hero");
-  }
-});
-
-btnPotion.addEventListener("click", () => {
-  if (gameState.whoTurn === "hero") {
-    btnAttack.disabled = true;
-    btnPotion.disabled = true;
-    usePotion();
-  }
-});
-
-// ==========================================
-// 6. FUNÇÕES DE INTERFACE 
-// ==========================================
-function updateUI() {
-  // Atualiza ouro
-  uiGoldCounter.innerText = myGroup.gold;
-
-  // Atualiza time do herói
-  heroTeamContainer.innerHTML = "";
-  myGroup.members.forEach(member => {
-    const hpPercent = (member.stats.current_hp / member.stats.max_hp) * 100;
-    const isDead = member.stats.current_hp <= 0;
-
-    const card = document.createElement("div");
-    card.className = `mini-card text-light ${isDead ? 'opacity-50' : ''}`;
-    card.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center">
-        <strong class="${isDead ? 'text-decoration-line-through text-secondary' : 'text-info'}">${hero.name}</strong>
-        <span class="badge bg-secondary">${hero.role}</span>
-      </div>
-      <p class="mt-1 mb-1">HP: ${Math.max(0, hero.stats.current_hp)} / ${hero.stats.max_hp}</p>
-      <div class="progress">
-        <div class="progress-bar ${isDead ? 'bg-secondary' : 'bg-success'}" style="width: ${Math.max(0, hpPercent)}%"></div>
-      </div>
-    `;
-    heroTeamContainer.appendChild(card);
-  });
-
-  enemyTeamContainer.innerHTML = "";
-
-  const enemies = Array.isArray(gameState.enemyLive) ? gameState.enemyLive : [gameState.enemyLive];
-
-  enemies.forEach((enemy) => {
-    if (!enemy) return;
-    const hpPercent = (enemy.stats.current_hp / enemy.stats.max_hp) * 100;
-    const isDead = enemy.stats.current_hp <= 0;
-
-    const card = document.createElement("div");
-    card.className = `mini-card text-light ${isDead ? 'opacity-50' : ''}`;
-    card.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center">
-        <strong class="${isDead ? 'text-decoration-line-through text-secondary' : 'text-danger'}">${enemy.name}</strong>
-      </div>
-      <p class="mt-1 mb-1">HP: ${Math.max(0, enemy.stats.current_hp)} / ${enemy.stats.max_hp}</p>
-      <div class="progress">
-        <div class="progress-bar ${isDead ? 'bg-secondary' : 'bg-danger'}" style="width: ${Math.max(0, hpPercent)}%"></div>
-      </div>
-    `;
-    enemyTeamContainer.appendChild(card);
-  });
-
-  if (gameState.whoTurn === "hero") {
-    turnIndicator.innerText = `Turno de ${gameState.heroLive.name}`;
-    turnIndicator.className = "badge bg-primary text-light fs-6 mb-2";
-  } else {
-    turnIndicator.innerText = `Turno de ${gameState.enemyLive.name}`;
-    turnIndicator.className = "badge bg-danger text-light fs-6 mb-2";
-  }
-}
-
-function logMessage(msg, colorClass = "text-light") {
-  const p = document.createElement("p");
-  p.className = `m-0 ${colorClass}`;
-  p.innerText = msg;
-  battleLog.appendChild(p);
-  battleLog.scrollTop = battleLog.scrollHeight;
-}
-
-// ==========================================
-// SELEÇÃO DE EQUIPE
-// ==========================================
-
 function renderTavern() {
   rosterContainer.innerHTML = "";
   myGroup.members = [];
 
   btnStartAdventure.disabled = true;
   btnStartAdventure.innerText = `Selecione 3 Heróis (0/3)`;
-  btnStartAdventure.className = "btn btn-secondary btn-lg fw-bold shadow mt-3"
+  btnStartAdventure.className = "btn btn-secondary btn-lg fw-bold shadow mt-3";
 
   database.characters.forEach(char => {
     const col = document.createElement("div");
@@ -268,8 +165,8 @@ function renderTavern() {
     card.style.transition = "transform 0.2s, border-color 0.2s";
 
     card.innerHTML = `
-    <h4 class="text-warning text-center mb-1">${char.name}</h4>
-    <div class="text-center mb-2">
+      <h4 class="text-warning text-center mb-1">${char.name}</h4>
+      <div class="text-center mb-2">
         <span class="badge bg-info text-dark">${char.role}</span>
       </div>
       <p style="font-size: 0.85rem; height: 40px;">${char.description}</p>
@@ -320,7 +217,165 @@ function renderTavern() {
 }
 
 // ==========================================
-// 7. LÓGICA DE COMBATE
+// 6. ATUALIZAÇÃO DA INTERFACE (UI)
+// ==========================================
+function updateUI() {
+  uiGoldCounter.innerText = myGroup.gold;
+  dungeonRoom.innerText = `Sala ${gameState.currentRoom} / ${gameState.maxRooms}`;
+
+  // Atualizar heróis
+  heroTeamContainer.innerHTML = "";
+  myGroup.members.forEach((hero) => {
+    const hpPercent = (hero.stats.current_hp / hero.stats.max_hp) * 100;
+    const isDead = hero.stats.current_hp <= 0;
+
+    const isMyTurn = gameState.activeCharacter && gameState.activeCharacter.id === hero.id;
+
+    const card = document.createElement("div");
+    card.className = `mini-card text-light ${isDead ? 'opacity-50' : ''} ${isMyTurn ? 'active-turn' : ''}`;
+    card.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <strong class="${isDead ? 'text-decoration-line-through text-secondary' : 'text-info'}">${hero.name}</strong>
+        <span class="badge bg-secondary">${hero.role}</span>
+      </div>
+      <p class="mt-1 mb-1">HP: ${Math.max(0, hero.stats.current_hp)} / ${hero.stats.max_hp}</p>
+      <div class="progress">
+        <div class="progress-bar ${isDead ? 'bg-secondary' : 'bg-success'}" style="width: ${Math.max(0, hpPercent)}%"></div>
+      </div>
+    `;
+    heroTeamContainer.appendChild(card);
+  });
+
+  // Atualizar inimigos
+  enemyTeamContainer.innerHTML = "";
+  gameState.enemiesLive.forEach((enemy) => {
+    const hpPercent = (enemy.stats.current_hp / enemy.stats.max_hp) * 100;
+    const isDead = enemy.stats.current_hp <= 0;
+
+    const isMyTurn = gameState.activeCharacter && gameState.activeCharacter.battleId === enemy.battleId;
+
+    const isTarget = gameState.selectedTarget && gameState.selectedTarget.battleId === enemy.battleId;
+
+    const card = document.createElement("div");
+    card.className = `mini-card text-light ${isDead ? 'opacity-50' : ''} ${isMyTurn ? 'active-turn' : ''} ${isTarget ? 'border border-danger border-2' : ''}`;
+    card.style.cursor = isDead ? "default" : "crosshair";
+
+    card.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <strong class="${isDead ? 'text-decoration-line-through text-secondary' : 'text-danger'}">
+          ${isTarget ? '🎯 ' : ''}${enemy.name}
+        </strong>
+      </div>
+      <p class="mt-1 mb-1">HP: ${Math.max(0, enemy.stats.current_hp)} / ${enemy.stats.max_hp}</p>
+      <div class="progress">
+        <div class="progress-bar ${isDead ? 'bg-secondary' : 'bg-danger'}" style="width: ${Math.max(0, hpPercent)}%"></div>
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      if (!isDead) {
+        gameState.selectedTarget = enemy;
+        updateUI();
+      }
+    });
+
+    enemyTeamContainer.appendChild(card);
+  });
+}
+
+function logMessage(msg, colorClass = "text-light") {
+  const p = document.createElement("p");
+  p.className = `m-0 ${colorClass}`;
+  p.innerText = msg;
+  battleLog.appendChild(p);
+  battleLog.scrollTop = battleLog.scrollHeight;
+}
+
+// ==========================================
+// 7. INICIATIVA E TURNOS
+// ==========================================
+function startRoom() {
+  gameState.enemiesLive = [];
+
+  // Define quantos monstros vão aparecer
+  let numEnemies = Math.floor(Math.random() * 3) + 1;
+
+  // Ultima sala sempre tem 3 inimigos
+  if (gameState.currentRoom === gameState.maxRooms) {
+    numEnemies = 3;
+  }
+
+  const letras = ["A", "B", "C"];
+
+  for (let i = 0; i < numEnemies; i++) {
+    const randomIndex = Math.floor(Math.random() * database.enemies.length);
+    const newEnemy = structuredClone(database.enemies[randomIndex]);
+
+    // Cria ID unico
+    newEnemy.battleId = `enemy_${i + 1}`;
+
+
+    // Adiciona letra no nome para diferenciar o mob
+    newEnemy.name = `${newEnemy.name} ${letras[i]}`;
+
+    gameState.enemiesLive.push(newEnemy);
+  }
+
+  battleLog.innerHTML = "";
+  logMessage(`⚔️ Sala ${gameState.currentRoom}: Um grupo de ${numEnemies} inimigo(s) apareceu!`, "text-warning fw-bold");
+
+  buildTurnQueue();
+  processNextTurn();
+}
+
+function buildTurnQueue() {
+  const aliveHeroes = myGroup.members.filter(h => h.stats.current_hp > 0);
+  const aliveEnemies = gameState.enemiesLive.filter(e => e.stats.current_hp > 0);
+
+  let allCombatants = [...aliveHeroes, ...aliveEnemies];
+  // Ordena do mais rápido para o mais lento (Velocidade / Speed)
+  allCombatants.sort((a, b) => b.stats.speed - a.stats.speed);
+
+  gameState.turnQueue = allCombatants;
+}
+
+function processNextTurn() {
+  if (gameState.turnQueue.length === 0) {
+    buildTurnQueue();
+  }
+
+  gameState.activeCharacter = gameState.turnQueue.shift();
+
+  if (gameState.activeCharacter.stats.current_hp <= 0) {
+    return processNextTurn();
+  }
+
+  const isHero = myGroup.members.some(h => h.id === gameState.activeCharacter.id);
+
+  if (isHero) {
+    logMessage(`\n⏳ Turno de ${gameState.activeCharacter.name}! O que fará?`, "text-info");
+    turnIndicator.innerText = `Sua vez: ${gameState.activeCharacter.name}!`;
+    turnIndicator.className = "badge bg-primary text-light fs-6 mb-2";
+
+    btnAttack.disabled = false;
+    btnSkill.disabled = false;
+    btnPotion.disabled = false;
+  } else {
+    logMessage(`\n⏳ Turno do Inimigo: ${gameState.activeCharacter.name}...`, "text-danger");
+    turnIndicator.innerText = `Vez do Inimigo!`;
+    turnIndicator.className = "badge bg-danger text-light fs-6 mb-2";
+
+    btnAttack.disabled = true;
+    btnSkill.disabled = true;
+    btnPotion.disabled = true;
+    setTimeout(() => { enemyTurnIA(); }, 1500);
+  }
+
+  updateUI();
+}
+
+// ==========================================
+// 8. MATEMÁTICA E LÓGICA DE COMBATE
 // ==========================================
 function calculateDamage(attacker, defender) {
   const baseDamage = attacker.stats.base_attack - defender.stats.base_defense;
@@ -329,11 +384,9 @@ function calculateDamage(attacker, defender) {
 
 function checkHit(attacker, defender) {
   let hitChance = 85;
-  const diferencaVelocidade = attacker.stats.speed - defender.stats.speed;
-
-  hitChance += (diferencaVelocidade * 2);
+  const differenceSpeed = attacker.stats.speed - defender.stats.speed;
+  hitChance += (differenceSpeed * 2);
   hitChance = Math.max(10, Math.min(hitChance, 100));
-
   const roll = Math.random() * 100;
   return roll < hitChance;
 }
@@ -344,112 +397,129 @@ function checkCritical(damage) {
   return roll < critChance ? damage * 2 : damage;
 }
 
-function usePotion() {
-  const hero = gameState.heroLive;
-  const potion = hero.inventory.find(item => item.item_id === 1);
+// Quando o Heroi ataca
+btnAttack.addEventListener("click", () => {
+  if (!gameState.selectedTarget) {
+    logMessage(`⚠️ Selecione um alvo clicando no monstro primeiro!`, "text-warning");
+    return;
+  }
 
-  if (potion && potion.quantity > 0) {
-    potion.quantity -= 1;
+  btnAttack.disabled = true;
+  btnSkill.disabled = true;
+  btnPotion.disabled = true;
 
-    const healAmount = 50;
-    hero.stats.current_hp = Math.min(hero.stats.current_hp + healAmount, hero.stats.max_hp);
+  const attacker = gameState.activeCharacter;
+  const defender = gameState.selectedTarget;
 
-    logMessage(`${hero.name} usou uma Poção de Vida e recuperou ${healAmount} HP!`, "text-success fw-bold");
-    updateUI();
-
-    gameState.whoTurn = "enemy";
-    nextTurn();
+  // Logica de Acerto
+  if (!checkHit(attacker, defender)) {
+    logMessage(`💨 O ataque de ${attacker.name} ERROU! (Esquiva)`, "text-secondary");
   } else {
-    logMessage(`${hero.name} não tem Poções de Vida!`, "text-warning");
-    btnAttack.disabled = false;
-    btnPotion.disabled = false;
+    let baseDamage = calculateDamage(attacker, defender);
+    const finalDamage = checkCritical(baseDamage);
+
+    if (finalDamage > baseDamage) logMessage(`💥 ACERTO CRÍTICO!`, "text-warning fw-bold");
+
+    defender.stats.current_hp -= finalDamage;
+    logMessage(`⚔️ ${attacker.name} atacou ${defender.name} e causou ${finalDamage} de dano!`);
+
+    if (defender.stats.current_hp <= 0) {
+      logMessage(`💀 ${defender.name} foi derrotado!`, "text-success fw-bold");
+      gameState.selectedTarget = null;
+    }
+  }
+
+  updateUI();
+  if (!checkBattleEnd()) {
+    setTimeout(() => { processNextTurn(); }, 1200);
+  }
+});
+
+// IA do inimigo
+function enemyTurnIA() {
+  const attacker = gameState.activeCharacter;
+
+  // Pega todos herois vivos
+  const aliveHeroes = myGroup.members.filter(h => h.stats.current_hp > 0);
+
+  if (aliveHeroes.length === 0) {
+    logMessage(`💀 Seu grupo foi totalmente aniquilado...`, "text-danger fw-bold");
+    return; // Fim de jogo
+  }
+
+  // Escolhe um alvo aleatório
+  const target = aliveHeroes[Math.floor(Math.random() * aliveHeroes.length)];
+
+  if (!checkHit(attacker, target)) {
+    logMessage(`💨 O ataque de ${attacker.name} ERROU ${target.name}!`, "text-secondary");
+  } else {
+    let baseDamage = calculateDamage(attacker, target);
+    const finalDamage = checkCritical(baseDamage);
+
+    if (finalDamage > baseDamage) logMessage(`💥 CRÍTICO!`, "text-warning");
+
+    target.stats.current_hp -= finalDamage;
+    logMessage(`🩸 ${attacker.name} atacou ${target.name} e causou ${finalDamage} de dano!`, "text-danger");
+
+    if (target.stats.current_hp <= 0) {
+      logMessage(`🪦 ${target.name} caiu em combate!`, "text-danger fw-bold");
+    }
+  }
+
+  updateUI();
+
+  if (!checkBattleEnd()) {
+    setTimeout(() => { processNextTurn(); }, 1500);
   }
 }
 
 function giveReward() {
-  const goldReward = gameState.enemyLive.stats.base_attack * 10;
+  const goldReward = 30 * gameState.currentRoom;
   myGroup.gold += goldReward;
-  logMessage(`💰 ${gameState.heroLive.name} recebeu ${goldReward} de ouro como recompensa!`, "text-warning");
+  logMessage(`💰 O grupo encontrou ${goldReward} moedas de ouro!`, "text-warning");
   updateUI();
 }
 
-function executeAttack(attackerType) {
-  const attacker = attackerType === "hero" ? gameState.heroLive : gameState.enemyLive;
-  const defender = attackerType === "hero" ? gameState.enemyLive : gameState.heroLive;
+// ==========================================
+// 9. PROGRESSÃO DA DUNGEON
+// ==========================================
+function checkBattleEnd() {
+  const aliveHeroes = myGroup.members.filter(h => h.stats.current_hp > 0);
+  const aliveEnemies = gameState.enemiesLive.filter(e => e.stats.current_hp > 0);
 
-  const acertou = checkHit(attacker, defender);
-
-  if (!acertou) {
-    logMessage(`O ataque de ${attacker.name} ERROU! (Esquiva)`, "text-secondary");
-  } else {
-    let baseDamage = calculateDamage(attacker, defender);
-    let finalDamage = checkCritical(baseDamage);
-
-    if (finalDamage > baseDamage) {
-      logMessage(`ACERTO CRÍTICO!`, "text-warning fw-bold");
-    }
-
-    defender.stats.current_hp -= finalDamage;
-    logMessage(`${attacker.name} atacou ${defender.name} e causou ${finalDamage} de dano!`);
+  // Todos herois morreram
+  if (aliveHeroes.length === 0) {
+    logMessage(`💀 GAME OVER! Seu grupo foi aniquilado na Sala ${gameState.currentRoom}...`, "text-danger fw-bold");
+    btnAttack.disabled = true;
+    btnSkill.disabled = true;
+    btnPotion.disabled = true;
+    return true; // Acabou
   }
 
-  updateUI();
-  checkBattleStatus();
-}
-
-// ==========================================
-// 8. GERENCIAMENTO DE TURNOS
-// ==========================================
-function checkBattleStatus() {
-  if (gameState.heroLive.stats.current_hp <= 0) {
-    logMessage('DERROTA! O herói foi derrotado.', 'text-danger fw-bold');
-    btnAttack.disabled = true;
-    btnPotion.disabled = true;
-  } else if (gameState.enemyLive.stats.current_hp <= 0) {
-    logMessage('VITÓRIA! O inimigo foi derrotado.', 'text-success fw-bold');
+  // Todos inimigos morreram
+  if (aliveEnemies.length === 0) {
+    logMessage(`🏆 SALA ${gameState.currentRoom} LIMPA!`, "text-success fw-bold");
     giveReward();
-    btnAttack.disabled = true;
-    btnPotion.disabled = true;
 
-    setTimeout(() => {
-      generateNewEnemy();
-    }, 2000);
-  } else {
-    gameState.whoTurn = gameState.whoTurn === "hero" ? "enemy" : "hero";
-    nextTurn();
+    // Verifica se era a ultima sala
+    if (gameState.currentRoom >= gameState.maxRooms) {
+      logMessage(`👑 DUNGEON CONCLUÍDA! Você limpou a Caverna dos Goblins!`, "text-warning fw-bold text-uppercase");
+      btnAttack.disabled = true;
+      btnSkill.disabled = true;
+      btnPotion.disabled = true;
+    } else {
+      gameState.currentRoom++;
+      logMessage(`Avançando para a Sala ${gameState.currentRoom}...`, "text-info");
+
+      // Reinicia a batalha com novos inimigos
+      gameState.selectedTarget = null;
+      setTimeout(() => { startRoom(); }, 2000);
+    }
+    return true; // Acabou
   }
+  return false; // Continua
 }
 
-function nextTurn() {
-  if (gameState.whoTurn === "hero") {
-    logMessage(`Turno de ${gameState.heroLive.name}...`, "text-info");
-    btnAttack.disabled = false;
-    btnPotion.disabled = false;
-  } else {
-    enemyTurn();
-  }
-}
 
-function enemyTurn() {
-  logMessage(`Turno de ${gameState.enemyLive.name}...`, "text-info");
-
-  setTimeout(() => {
-    executeAttack("enemy");
-  }, 1000);
-}
-
-function generateNewEnemy() {
-  logMessage(`--- NOVA BATALHA ---`, "text-secondary fw-bold");
-
-  const randomIndex = Math.floor(Math.random() * database.enemies.length);
-  const newEnemy = database.enemies[randomIndex];
-
-  gameState.enemyLive = structuredClone(newEnemy);
-  gameState.whoTurn = "hero";
-
-  updateUI();
-  logMessage(`Um ${gameState.enemyLive.name} apareceu!`, "text-warning fw-bold");
-
-  btnAttack.disabled = false;
-  btnPotion.disabled = false;
-}
+btnPotion.addEventListener("click", () => logMessage(`🧪 Poções serão ajustadas em breve...`, "text-secondary"));
+btnSkill.addEventListener("click", () => logMessage(`✨ Habilidades serão ajustadas em breve...`, "text-secondary"));

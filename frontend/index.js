@@ -3,19 +3,11 @@ import { database, loadDatabase } from "./data/database.js";
 // ==========================================
 // 1. ELEMENTOS DA INTERFACE (DOM)
 // ==========================================
-const uiHeroName = document.getElementById("hero-name");
-const uiHeroHpText = document.getElementById("hero-hp-text");
-const uiHeroHpBar = document.getElementById("hero-hp-bar");
-
-const uiEnemyName = document.getElementById("enemy-name");
-const uiEnemyHpText = document.getElementById("enemy-hp-text");
-const uiEnemyHpBar = document.getElementById("enemy-hp-bar");
-
 const btnAttack = document.getElementById("btn-attack");
-const battleLog = document.getElementById("battle-log");
 const btnPotion = document.getElementById("btn-potion");
+const btnSkill = document.getElementById("btn-skill");
+const battleLog = document.getElementById("battle-log");
 const uiGoldCounter = document.getElementById("gold-counter");
-const uiHeroPotions = document.getElementById("hero-potions");
 
 const screenLogin = document.getElementById("screen-login");
 const screenTavern = document.getElementById("screen-tavern");
@@ -27,6 +19,14 @@ const btnLogin = document.getElementById("btn-login");
 const btnRegister = document.getElementById("btn-register");
 const loginMsg = document.getElementById("login-msg");
 const btnStartAdventure = document.getElementById("btn-start-adventure");
+
+const rosterContainer = document.getElementById("character-roster");
+
+const heroTeamContainer = document.getElementById("hero-team-container");
+const enemyTeamContainer = document.getElementById("enemy-team-container");
+const turnIndicator = document.getElementById("turn-indicator");
+const dungeonName = document.getElementById("dungeon-name");
+const dungeonRoom = document.getElementById("dungeon-room");
 
 // ==========================================
 // 2. ESTADO DO JOGO E SAVE
@@ -77,10 +77,31 @@ async function handleAccount(action) {
       if (action === "login") {
         currentUser = username;
         myGroup.gold = data.saveData.gold;
-        setTimeout(() => showScreen("screen-tavern"), 1000);
+
+        if (data.saveData.team && data.saveData.team.length === 3) {
+          myGroup.members = data.saveData.team;
+          gameState.heroLive = myGroup.members[0];
+
+          const randomIndex = Math.floor(Math.random() * database.enemies.length);
+          gameState.enemyLive = structuredClone(database.enemies[randomIndex]);
+          gameState.whoTurn = "hero";
+
+          updateUI();
+          battleLog.innerHTML = "";
+          logMessage(`Bem-vindo de volta! Um ${gameState.enemyLive.name} apareceu!`, "text-warning fw-bold");
+
+          btnAttack.disabled = false;
+          btnPotion.disabled = false;
+
+          setTimeout(() => showScreen("screen-battle"), 1000);
+        } else {
+          renderTavern();
+          setTimeout(() => showScreen("screen-tavern"), 1000);
+        }
       }
     }
   } catch (err) {
+    console.error("Erro real:", err);
     loginMsg.innerText = "Erro de conexão com o servidor.";
     loginMsg.className = "mt-3 mb-0 fw-bold text-danger";
   }
@@ -90,26 +111,33 @@ btnLogin.addEventListener("click", () => handleAccount("login"));
 btnRegister.addEventListener("click", () => handleAccount("register"));
 
 // Configura e inicia a batalha
-btnStartAdventure.addEventListener("click", () => {
-  showScreen("screen-battle");
+btnStartAdventure.addEventListener("click", async () => {
+  if (myGroup.members.length !== 3) return;
 
-  if (myGroup.members.length === 0) {
-    myGroup.members.push(structuredClone(database.characters[0]));
+  // Envia o time para salvar no servidor
+  try {
+    await fetch('http://localhost:3000/api/save-team', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: currentUser, team: myGroup.members })
+    });
+    console.log("Time salvo no servidor com sucesso!");
+  } catch (err) {
+    console.error("Erro ao salvar time:", err);
   }
+
+  showScreen("screen-battle");
 
   gameState.heroLive = myGroup.members[0];
 
-  // Sorteia um inimigo
   const randomIndex = Math.floor(Math.random() * database.enemies.length);
   gameState.enemyLive = structuredClone(database.enemies[randomIndex]);
   gameState.whoTurn = "hero";
 
-  // Atualiza a interface da arena
   updateUI();
-  battleLog.innerHTML = ""; // Limpa o log de lutas antigas
+  battleLog.innerHTML = "";
   logMessage(`Um ${gameState.enemyLive.name} selvagem apareceu!`, "text-warning fw-bold");
 
-  // Libera os botões de ação
   btnAttack.disabled = false;
   btnPotion.disabled = false;
 });
@@ -154,33 +182,60 @@ btnPotion.addEventListener("click", () => {
 // 6. FUNÇÕES DE INTERFACE 
 // ==========================================
 function updateUI() {
-  const hero = gameState.heroLive;
-  const enemy = gameState.enemyLive;
-
-  // Atualiza Herói
-  uiHeroName.innerText = hero.name;
-
-  const heroHpVisual = Math.max(0, hero.stats.current_hp);
-  uiHeroHpText.innerText = `${heroHpVisual} / ${hero.stats.max_hp}`;
-
-  const heroHpPercent = (hero.stats.current_hp / hero.stats.max_hp) * 100;
-  uiHeroHpBar.style.width = `${Math.max(0, heroHpPercent)}%`;
-
-  // Atualiza Inimigo
-  uiEnemyName.innerText = enemy.name;
-
-  const enemyHpVisual = Math.max(0, enemy.stats.current_hp);
-  uiEnemyHpText.innerText = `${enemyHpVisual} / ${enemy.stats.max_hp}`;
-
-  const enemyHpPercent = (enemy.stats.current_hp / enemy.stats.max_hp) * 100;
-  uiEnemyHpBar.style.width = `${Math.max(0, enemyHpPercent)}%`;
-
-  // Atualiza Ouro e Poções
+  // Atualiza ouro
   uiGoldCounter.innerText = myGroup.gold;
 
-  const potion = hero.inventory.find(item => item.item_id === 1);
-  const quantity = potion ? potion.quantity : 0;
-  uiHeroPotions.innerText = `Poções: ${quantity}`;
+  // Atualiza time do herói
+  heroTeamContainer.innerHTML = "";
+  myGroup.members.forEach(member => {
+    const hpPercent = (member.stats.current_hp / member.stats.max_hp) * 100;
+    const isDead = member.stats.current_hp <= 0;
+
+    const card = document.createElement("div");
+    card.className = `mini-card text-light ${isDead ? 'opacity-50' : ''}`;
+    card.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <strong class="${isDead ? 'text-decoration-line-through text-secondary' : 'text-info'}">${hero.name}</strong>
+        <span class="badge bg-secondary">${hero.role}</span>
+      </div>
+      <p class="mt-1 mb-1">HP: ${Math.max(0, hero.stats.current_hp)} / ${hero.stats.max_hp}</p>
+      <div class="progress">
+        <div class="progress-bar ${isDead ? 'bg-secondary' : 'bg-success'}" style="width: ${Math.max(0, hpPercent)}%"></div>
+      </div>
+    `;
+    heroTeamContainer.appendChild(card);
+  });
+
+  enemyTeamContainer.innerHTML = "";
+
+  const enemies = Array.isArray(gameState.enemyLive) ? gameState.enemyLive : [gameState.enemyLive];
+
+  enemies.forEach((enemy) => {
+    if (!enemy) return;
+    const hpPercent = (enemy.stats.current_hp / enemy.stats.max_hp) * 100;
+    const isDead = enemy.stats.current_hp <= 0;
+
+    const card = document.createElement("div");
+    card.className = `mini-card text-light ${isDead ? 'opacity-50' : ''}`;
+    card.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center">
+        <strong class="${isDead ? 'text-decoration-line-through text-secondary' : 'text-danger'}">${enemy.name}</strong>
+      </div>
+      <p class="mt-1 mb-1">HP: ${Math.max(0, enemy.stats.current_hp)} / ${enemy.stats.max_hp}</p>
+      <div class="progress">
+        <div class="progress-bar ${isDead ? 'bg-secondary' : 'bg-danger'}" style="width: ${Math.max(0, hpPercent)}%"></div>
+      </div>
+    `;
+    enemyTeamContainer.appendChild(card);
+  });
+
+  if (gameState.whoTurn === "hero") {
+    turnIndicator.innerText = `Turno de ${gameState.heroLive.name}`;
+    turnIndicator.className = "badge bg-primary text-light fs-6 mb-2";
+  } else {
+    turnIndicator.innerText = `Turno de ${gameState.enemyLive.name}`;
+    turnIndicator.className = "badge bg-danger text-light fs-6 mb-2";
+  }
 }
 
 function logMessage(msg, colorClass = "text-light") {
@@ -189,6 +244,79 @@ function logMessage(msg, colorClass = "text-light") {
   p.innerText = msg;
   battleLog.appendChild(p);
   battleLog.scrollTop = battleLog.scrollHeight;
+}
+
+// ==========================================
+// SELEÇÃO DE EQUIPE
+// ==========================================
+
+function renderTavern() {
+  rosterContainer.innerHTML = "";
+  myGroup.members = [];
+
+  btnStartAdventure.disabled = true;
+  btnStartAdventure.innerText = `Selecione 3 Heróis (0/3)`;
+  btnStartAdventure.className = "btn btn-secondary btn-lg fw-bold shadow mt-3"
+
+  database.characters.forEach(char => {
+    const col = document.createElement("div");
+    col.className = "col-md-3 mb-3";
+
+    const card = document.createElement("div");
+    card.className = "card p-3 h-100 text-start border-secondary";
+    card.style.cursor = "pointer";
+    card.style.transition = "transform 0.2s, border-color 0.2s";
+
+    card.innerHTML = `
+    <h4 class="text-warning text-center mb-1">${char.name}</h4>
+    <div class="text-center mb-2">
+        <span class="badge bg-info text-dark">${char.role}</span>
+      </div>
+      <p style="font-size: 0.85rem; height: 40px;">${char.description}</p>
+      <hr class="border-secondary mt-0">
+      <ul class="list-unstyled mb-0 fw-bold" style="font-size: 0.85rem;">
+        <li class="text-success">HP: ${char.stats.max_hp}</li>
+        <li class="text-danger">ATQ: ${char.stats.base_attack}</li>
+        <li class="text-primary">DEF: ${char.stats.base_defense}</li>
+        <li class="text-warning">VEL: ${char.stats.speed}</li>
+      </ul>
+    `;
+
+    card.addEventListener("click", () => {
+      const isSelected = myGroup.members.some(m => m.id === char.id);
+
+      if (isSelected) {
+        myGroup.members = myGroup.members.filter(m => m.id !== char.id);
+        card.classList.remove("border-warning", "shadow-lg");
+        card.classList.add("border-secondary");
+        card.style.transform = "scale(1)";
+      } else {
+        if (myGroup.members.length < 3) {
+          myGroup.members.push(structuredClone(char));
+          card.classList.remove("border-secondary");
+          card.classList.add("border-warning", "shadow-lg");
+          card.style.transform = "scale(1.05)";
+        } else {
+          alert("Você só pode selecionar 3 heróis para a aventura!");
+          return;
+        }
+      }
+
+      const count = myGroup.members.length;
+      if (count === 3) {
+        btnStartAdventure.disabled = false;
+        btnStartAdventure.innerText = `Ir para a Arena`;
+        btnStartAdventure.className = "btn btn-warning btn-lg fw-bold shadow mt-3";
+      } else {
+        btnStartAdventure.disabled = true;
+        btnStartAdventure.innerText = `Selecione 3 Heróis (${count}/3)`;
+        btnStartAdventure.className = "btn btn-secondary btn-lg fw-bold shadow mt-3";
+      }
+    });
+
+    col.appendChild(card);
+    rosterContainer.appendChild(col);
+  });
 }
 
 // ==========================================

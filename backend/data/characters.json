@@ -1,0 +1,86 @@
+[
+  {
+    "id": "c1",
+    "name": "Arthur",
+    "class": "Paladino",
+    "role": "Tanque",
+    "description": "Forte e resistente. Foca em absorver o dano para proteger a equipe.",
+    "level": 1,
+    "stats": {
+      "max_hp": 150,
+      "current_hp": 150,
+      "base_attack": 10,
+      "base_defense": 8,
+      "speed": 4
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
+  },
+  {
+    "id": "c2",
+    "name": "Elara",
+    "class": "Maga",
+    "role": "Dano Mágico",
+    "description": "Causa dano massivo de forma explosiva, mas possui pouca vida.",
+    "level": 1,
+    "stats": {
+      "max_hp": 70,
+      "current_hp": 70,
+      "base_attack": 22,
+      "base_defense": 2,
+      "speed": 8
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 2
+      }
+    ]
+  },
+  {
+    "id": "c3",
+    "name": "Thalor",
+    "class": "Clérigo",
+    "role": "Suporte",
+    "description": "Especialista em manter a equipe viva. Carrega mais poções.",
+    "level": 1,
+    "stats": {
+      "max_hp": 100,
+      "current_hp": 100,
+      "base_attack": 8,
+      "base_defense": 5,
+      "speed": 6
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 6
+      }
+    ]
+  },
+  {
+    "id": "c4",
+    "name": "Lyra",
+    "class": "Arqueira",
+    "role": "Dano Rápido",
+    "description": "Iniciativa alta. Quase sempre ataca antes dos inimigos e tem alta esquiva.",
+    "level": 1,
+    "stats": {
+      "max_hp": 85,
+      "current_hp": 85,
+      "base_attack": 15,
+      "base_defense": 3,
+      "speed": 14
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
+  }
+]

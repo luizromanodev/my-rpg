@@ -51,6 +51,32 @@
         background-color: #212f3c;
         border: 1px solid #000;
       }
+
+      .mini-card {
+        background-color: rgba(22, 33, 46, 0.9);
+        border: 2px solid #5d6d7e;
+        border-radius: 8 px;
+        padding: 10px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .mini-card.active-turn {
+        border-color: #f1c40f !important;
+        box-shadow: 0 0 15px rgba(241, 196, 15, 0.5) !important;
+        transform: scale(1.02);
+      }
+
+      .mini-card .progress {
+        height: 12px;
+        background-color: #111;
+      }
+
+      .mini-card p {
+        margin-bottom: 2px;
+        font-size: 0.9rem;
+      }
     </style>
   </head>
   <body>
@@ -90,21 +116,35 @@
       <div id="screen-tavern" class="row d-none mt-5 text-center">
         <div class="col-12">
           <h2 class="text-info mb-4">Taverna: Monte seu Time</h2>
-          <p>
-            Em breve você poderá recrutar Curandeiras, Tanques e Arqueiros aqui.
-          </p>
+          <p>Escolha 3 heróis para a sua jornada.</p>
+
+          <div
+            id="character-roster"
+            class="row justify-content-center mb-4"
+          ></div>
+
           <button
             id="btn-start-adventure"
             class="btn btn-warning btn-lg fw-bold shadow mt-3"
+            disabled
           >
-            Ir para a Arena (Teste)
+            Selecione 3 Heróis (0/3)
           </button>
         </div>
       </div>
 
       <div id="screen-battle" class="d-none">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h1 class="text-warning text-shadow m-0">Arena de Batalha</h1>
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2"
+        >
+          <div>
+            <h2 class="text-warning text-shadow m-0" id="dungeon-name">
+              Caverna dos Goblins
+            </h2>
+            <span class="badge bg-secondary fs-6 mt-1" id="dungeon-room"
+              >Sala 1 / 3</span
+            >
+          </div>
           <div
             class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
           >
@@ -112,73 +152,73 @@
           </div>
         </div>
 
-        <div class="row align-items-center mb-4">
+        <div class="row mb-4">
           <div class="col-md-4">
-            <div class="card p-4 shadow-lg text-center">
-              <h3 id="hero-name" class="fw-bold text-info">Carregando...</h3>
-              <span id="hero-potions" class="badge bg-primary mb-3"
-                >Poções: 0</span
-              >
-              <p class="mb-1 fw-bold">HP: <span id="hero-hp-text">0/0</span></p>
-              <div class="progress mb-2">
-                <div
-                  id="hero-hp-bar"
-                  class="progress-bar bg-success progress-bar-striped progress-bar-animated"
-                  style="width: 100%"
-                ></div>
-              </div>
-            </div>
+            <h4 class="text-info text-center mb-3">Seu Grupo</h4>
+            <div
+              id="hero-team-container"
+              class="d-flex flex-column gap-3"
+            ></div>
           </div>
 
-          <div class="col-md-4 text-center my-4 my-md-0">
-            <h2
-              class="text-danger mb-4 fw-bold"
-              style="text-shadow: 2px 2px 4px #000"
+          <div class="col-md-4 d-flex flex-column">
+            <div class="text-center mb-3">
+              <h2
+                class="text-danger fw-bold"
+                style="text-shadow: 2px 2px 4px #000"
+              >
+                VS
+              </h2>
+              <span
+                id="turn-indicator"
+                class="badge bg-light text-dark fs-6 mb-2"
+                >Preparando batalha...</span
+              >
+            </div>
+
+            <div
+              class="card p-3 shadow text-center mb-3 border-secondary"
+              style="background-color: rgba(44, 62, 80, 0.9)"
             >
-              VS
-            </h2>
-            <div class="d-grid gap-3 px-3">
-              <button
-                id="btn-attack"
-                class="btn btn-danger btn-lg fw-bold shadow border-dark"
-                disabled
-              >
-                ATACAR
-              </button>
-              <button
-                id="btn-potion"
-                class="btn btn-success btn-lg fw-bold shadow border-dark"
-                disabled
-              >
-                USAR POÇÃO
-              </button>
+              <h5 class="text-light mb-3">Ações</h5>
+              <div class="d-grid gap-2">
+                <button
+                  id="btn-attack"
+                  class="btn btn-danger fw-bold shadow border-dark"
+                  disabled
+                >
+                  ATACAR
+                </button>
+                <button
+                  id="btn-skill"
+                  class="btn btn-primary fw-bold shadow border-dark"
+                  disabled
+                >
+                  HABILIDADE
+                </button>
+                <button
+                  id="btn-potion"
+                  class="btn btn-success fw-bold shadow border-dark"
+                  disabled
+                >
+                  USAR POÇÃO
+                </button>
+              </div>
             </div>
+
+            <div
+              id="battle-log"
+              class="flex-grow-1"
+              style="min-height: 200px"
+            ></div>
           </div>
 
           <div class="col-md-4">
-            <div class="card p-4 shadow-lg text-center">
-              <h3 id="enemy-name" class="fw-bold text-danger">Carregando...</h3>
-              <span class="badge bg-secondary mb-3">Inimigo</span>
-              <p class="mb-1 fw-bold">
-                HP: <span id="enemy-hp-text">0/0</span>
-              </p>
-              <div class="progress mb-2">
-                <div
-                  id="enemy-hp-bar"
-                  class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
-                  style="width: 100%"
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-12">
-            <h4 class="text-light border-bottom border-secondary pb-2">
-              Diário de Combate
-            </h4>
-            <div id="battle-log"></div>
+            <h4 class="text-danger text-center mb-3">Inimigos</h4>
+            <div
+              id="enemy-team-container"
+              class="d-flex flex-column gap-3"
+            ></div>
           </div>
         </div>
       </div>

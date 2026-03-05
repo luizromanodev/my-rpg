@@ -59,6 +59,20 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+// Rota de salvar o  time
+app.post('/api/save-team', (req, res) => {
+  const { username, team } = req.body;
+  let accounts = JSON.parse(fs.readFileSync(accountsPath, 'utf-8'));
+
+  if (accounts[username]) {
+    accounts[username].saveData.team = team;
+    fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
+    res.status(200).json({ message: 'Time salvo com sucesso' });
+  } else {
+    res.status(404).json({ error: 'Usuário não encontrado' });
+  }
+});
+
 // --- SERVIDOR ON ---
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta http://localhost:${PORT}`);

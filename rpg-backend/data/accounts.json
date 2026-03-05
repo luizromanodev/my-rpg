@@ -1,9 +1,0 @@
-{
-  "daemon": {
-    "password": "123123",
-    "saveData": {
-      "gold": 0,
-      "team": []
-    }
-  }
-}

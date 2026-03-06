@@ -13,38 +13,347 @@
     "rewards": {
       "exp": 15,
       "gold": 5,
-      "drops": [
-        {
-          "item_id": 1,
-          "chance": 0.3
-        }
-      ]
+      "drops": [{ "item_id": 1, "chance": 0.3 }]
     }
   },
   {
     "id": "m2",
-    "name": "Goblin Saqueador",
+    "name": "Morcego Gigante",
+    "level": 2,
+    "stats": {
+      "max_hp": 25,
+      "current_hp": 25,
+      "base_attack": 12,
+      "base_defense": 1,
+      "speed": 15
+    },
+    "rewards": {
+      "exp": 20,
+      "gold": 8,
+      "drops": [{ "item_id": 1, "chance": 0.2 }]
+    }
+  },
+  {
+    "id": "m3",
+    "name": "Goblin Menor",
     "level": 3,
     "stats": {
-      "max_hp": 65,
-      "current_hp": 65,
+      "max_hp": 45,
+      "current_hp": 45,
       "base_attack": 14,
-      "base_defense": 6,
+      "base_defense": 4,
       "speed": 10
     },
     "rewards": {
-      "exp": 45,
+      "exp": 30,
+      "gold": 12,
+      "drops": [{ "item_id": 1, "chance": 0.4 }]
+    }
+  },
+  {
+    "id": "m4",
+    "name": "Goblin Guerreiro",
+    "level": 4,
+    "stats": {
+      "max_hp": 70,
+      "current_hp": 70,
+      "base_attack": 18,
+      "base_defense": 10,
+      "speed": 8
+    },
+    "rewards": {
+      "exp": 50,
+      "gold": 25,
+      "drops": [{ "item_id": 1, "chance": 0.5 }]
+    }
+  },
+  {
+    "id": "m5",
+    "name": "Lobo Atroz",
+    "level": 4,
+    "stats": {
+      "max_hp": 60,
+      "current_hp": 60,
+      "base_attack": 22,
+      "base_defense": 5,
+      "speed": 16
+    },
+    "rewards": {
+      "exp": 55,
+      "gold": 20,
+      "drops": [{ "item_id": 1, "chance": 0.3 }]
+    }
+  },
+  {
+    "id": "m6",
+    "name": "Xamã Goblin",
+    "level": 5,
+    "stats": {
+      "max_hp": 90,
+      "current_hp": 90,
+      "base_attack": 25,
+      "base_defense": 6,
+      "speed": 12
+    },
+    "rewards": {
+      "exp": 80,
+      "gold": 40,
+      "drops": [{ "item_id": 1, "chance": 0.8 }]
+    }
+  },
+  {
+    "id": "m7",
+    "name": "Rei Goblin",
+    "level": 6,
+    "stats": {
+      "max_hp": 150,
+      "current_hp": 150,
+      "base_attack": 30,
+      "base_defense": 12,
+      "speed": 9
+    },
+    "rewards": {
+      "exp": 150,
+      "gold": 100,
+      "drops": [{ "item_id": 101, "chance": 1.0 }]
+    }
+  },
+  {
+    "id": "m8",
+    "name": "Esqueleto Raso",
+    "level": 7,
+    "stats": {
+      "max_hp": 80,
+      "current_hp": 80,
+      "base_attack": 25,
+      "base_defense": 8,
+      "speed": 11
+    },
+    "rewards": {
+      "exp": 60,
+      "gold": 18,
+      "drops": [{ "item_id": 1, "chance": 0.3 }]
+    }
+  },
+  {
+    "id": "m9",
+    "name": "Rato Zumbi",
+    "level": 7,
+    "stats": {
+      "max_hp": 50,
+      "current_hp": 50,
+      "base_attack": 35,
+      "base_defense": 2,
+      "speed": 18
+    },
+    "rewards": {
+      "exp": 65,
       "gold": 15,
-      "drops": [
-        {
-          "item_id": 101,
-          "chance": 0.1
-        },
-        {
-          "item_id": 1,
-          "chance": 0.5
-        }
-      ]
+      "drops": [{ "item_id": 1, "chance": 0.2 }]
+    }
+  },
+  {
+    "id": "m10",
+    "name": "Ladrão de Tumbas",
+    "level": 8,
+    "stats": {
+      "max_hp": 100,
+      "current_hp": 100,
+      "base_attack": 28,
+      "base_defense": 10,
+      "speed": 14
+    },
+    "rewards": {
+      "exp": 75,
+      "gold": 25,
+      "drops": [{ "item_id": 1, "chance": 0.5 }]
+    }
+  },
+  {
+    "id": "m11",
+    "name": "Cavaleiro Caído",
+    "level": 9,
+    "stats": {
+      "max_hp": 140,
+      "current_hp": 140,
+      "base_attack": 40,
+      "base_defense": 20,
+      "speed": 10
+    },
+    "rewards": {
+      "exp": 110,
+      "gold": 45,
+      "drops": [{ "item_id": 1, "chance": 0.6 }]
+    }
+  },
+  {
+    "id": "m12",
+    "name": "Aparição Sombria",
+    "level": 9,
+    "stats": {
+      "max_hp": 90,
+      "current_hp": 90,
+      "base_attack": 50,
+      "base_defense": 5,
+      "speed": 22
+    },
+    "rewards": {
+      "exp": 120,
+      "gold": 40,
+      "drops": [{ "item_id": 1, "chance": 0.4 }]
+    }
+  },
+  {
+    "id": "m13",
+    "name": "Necromante Aprendiz",
+    "level": 10,
+    "stats": {
+      "max_hp": 180,
+      "current_hp": 180,
+      "base_attack": 55,
+      "base_defense": 12,
+      "speed": 15
+    },
+    "rewards": {
+      "exp": 160,
+      "gold": 80,
+      "drops": [{ "item_id": 1, "chance": 0.9 }]
+    }
+  },
+  {
+    "id": "m14",
+    "name": "Lorde Esqueleto",
+    "level": 12,
+    "stats": {
+      "max_hp": 300,
+      "current_hp": 300,
+      "base_attack": 65,
+      "base_defense": 25,
+      "speed": 13
+    },
+    "rewards": {
+      "exp": 300,
+      "gold": 250,
+      "drops": [{ "item_id": 101, "chance": 1.0 }]
+    }
+  },
+  {
+    "id": "m15",
+    "name": "Lobo do Gelo",
+    "level": 13,
+    "stats": {
+      "max_hp": 150,
+      "current_hp": 150,
+      "base_attack": 60,
+      "base_defense": 15,
+      "speed": 20
+    },
+    "rewards": {
+      "exp": 140,
+      "gold": 35,
+      "drops": [{ "item_id": 1, "chance": 0.4 }]
+    }
+  },
+  {
+    "id": "m16",
+    "name": "Elemental de Neve",
+    "level": 13,
+    "stats": {
+      "max_hp": 220,
+      "current_hp": 220,
+      "base_attack": 50,
+      "base_defense": 20,
+      "speed": 8
+    },
+    "rewards": {
+      "exp": 150,
+      "gold": 40,
+      "drops": [{ "item_id": 1, "chance": 0.5 }]
+    }
+  },
+  {
+    "id": "m17",
+    "name": "Yeti Jovem",
+    "level": 14,
+    "stats": {
+      "max_hp": 280,
+      "current_hp": 280,
+      "base_attack": 75,
+      "base_defense": 18,
+      "speed": 12
+    },
+    "rewards": {
+      "exp": 180,
+      "gold": 50,
+      "drops": [{ "item_id": 1, "chance": 0.6 }]
+    }
+  },
+  {
+    "id": "m18",
+    "name": "Golem de Gelo",
+    "level": 15,
+    "stats": {
+      "max_hp": 400,
+      "current_hp": 400,
+      "base_attack": 85,
+      "base_defense": 40,
+      "speed": 6
+    },
+    "rewards": {
+      "exp": 250,
+      "gold": 80,
+      "drops": [{ "item_id": 1, "chance": 0.7 }]
+    }
+  },
+  {
+    "id": "m19",
+    "name": "Bruxa da Nevasca",
+    "level": 15,
+    "stats": {
+      "max_hp": 200,
+      "current_hp": 200,
+      "base_attack": 95,
+      "base_defense": 12,
+      "speed": 24
+    },
+    "rewards": {
+      "exp": 260,
+      "gold": 75,
+      "drops": [{ "item_id": 1, "chance": 0.5 }]
+    }
+  },
+  {
+    "id": "m20",
+    "name": "Dragão Branco Filhote",
+    "level": 16,
+    "stats": {
+      "max_hp": 450,
+      "current_hp": 450,
+      "base_attack": 110,
+      "base_defense": 30,
+      "speed": 18
+    },
+    "rewards": {
+      "exp": 400,
+      "gold": 150,
+      "drops": [{ "item_id": 1, "chance": 1.0 }]
+    }
+  },
+  {
+    "id": "m21",
+    "name": "Rei do Inverno",
+    "level": 18,
+    "stats": {
+      "max_hp": 700,
+      "current_hp": 700,
+      "base_attack": 130,
+      "base_defense": 45,
+      "speed": 16
+    },
+    "rewards": {
+      "exp": 1000,
+      "gold": 500,
+      "drops": [{ "item_id": 101, "chance": 1.0 }]
     }
   }
 ]

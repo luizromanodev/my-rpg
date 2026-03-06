@@ -77,6 +77,135 @@
         margin-bottom: 2px;
         font-size: 0.9rem;
       }
+
+      /* ========================================= */
+      /* ANIMAÇÕES DE COMBATE                      */
+      /* ========================================= */
+
+      /* Barra de Vida */
+      .mini-card .progress-bar {
+        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      /* Tremor ao Tomar Dano */
+      @keyframes shake {
+        0% {
+          transform: translateX(0);
+          border-color: #e74c3c;
+        }
+        25% {
+          transform: translateX(-5px) rotate(-1deg);
+        }
+        50% {
+          transform: translateX(5px) rotate(1deg);
+        }
+        75% {
+          transform: translateX(-5px) rotate(-1deg);
+        }
+        100% {
+          transform: translateX(0);
+          border-color: #5d6d7e;
+        }
+      }
+      .anim-damage {
+        animation: shake 0.4s ease-in-out;
+        border-color: #e74c3c !important;
+      }
+
+      /* Ataque */
+      @keyframes attackRight {
+        0% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(25px) scale(1.05);
+          z-index: 10;
+          border-color: #f1c40f;
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+      @keyframes attackLeft {
+        0% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(-25px) scale(1.05);
+          z-index: 10;
+          border-color: #f1c40f;
+        }
+        100% {
+          transform: translateX(0);
+        }
+      }
+      .anim-attack-hero {
+        animation: attackRight 0.3s ease-in-out;
+      }
+      .anim-attack-enemy {
+        animation: attackLeft 0.3s ease-in-out;
+      }
+
+      /* Morte */
+      @keyframes deathAnim {
+        0% {
+          opacity: 1;
+          transform: scale(1);
+          filter: brightness(1) invert(0);
+        }
+        40% {
+          transform: scale(1.1);
+          filter: brightness(2) invert(1);
+          border-color: #fff;
+        }
+        100% {
+          opacity: 0.5;
+          transform: scale(0.9) translateY(10px);
+          filter: grayscale(100%);
+        }
+      }
+      .anim-death {
+        animation: deathAnim 0.7s ease-out forwards;
+      }
+
+      /* Usando Habilidade */
+      @keyframes skillAnim {
+        0% {
+          transform: translateY(0);
+          box-shadow: 0 0 0 rgba(52, 152, 219, 0);
+        }
+        50% {
+          transform: translateY(-15px);
+          box-shadow: 0 0 25px rgba(52, 152, 219, 1);
+          border-color: #3498db;
+        }
+        100% {
+          transform: translateY(0);
+          box-shadow: 0 0 0 rgba(52, 152, 219, 0);
+        }
+      }
+      .anim-skill-use {
+        animation: skillAnim 0.6s ease-in-out;
+        z-index: 10;
+      }
+
+      /* Cura */
+      @keyframes healAnim {
+        0% {
+          box-shadow: 0 0 0 rgba(46, 204, 113, 0);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(46, 204, 113, 1);
+          border-color: #2ecc71;
+          transform: scale(1.05);
+        }
+        100% {
+          box-shadow: 0 0 0 rgba(46, 204, 113, 0);
+        }
+      }
+      .anim-heal {
+        animation: healAnim 0.5s ease-in-out;
+      }
     </style>
   </head>
   <body>
@@ -135,11 +264,11 @@
 
       <div id="screen-map" class="d-none mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <h2 class="text-warning text-shadow m-0">🗺️ Mapa Mundi</h2>
+          <h2 class="text-warning text-shadow m-0">Mapa Mundi</h2>
           <div
             class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
           >
-            💰 Ouro: <span id="map-gold-counter">0</span>
+            Ouro: <span id="map-gold-counter">0</span>
           </div>
         </div>
 
@@ -169,7 +298,7 @@
           <div
             class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
           >
-            💰 Ouro: <span id="gold-counter">0</span>
+            Ouro: <span id="gold-counter">0</span>
           </div>
         </div>
 

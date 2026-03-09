@@ -50,36 +50,6 @@ let gameState = {
 
 let turnTimer = null;
 
-const campaignMaps = [
-  {
-    id: "map_1",
-    name: "Caverna dos Goblins",
-    requiredClears: 0,
-    mobsNormal: ["Slime Verde", "Morcego Gigante", "Goblin Menor"],
-    mobsElite: ["Goblin Guerreiro", "Lobo Atroz"],
-    miniBoss: ["Xamã Goblin"],
-    boss: ["Rei Goblin"],
-  },
-  {
-    id: "map_2",
-    name: "Cidade Soterrada",
-    requiredClears: 1,
-    mobsNormal: ["Esqueleto Raso", "Rato Zumbi", "Ladrão de Tumbas"],
-    mobsElite: ["Cavaleiro Caído", "Aparição Sombria"],
-    miniBoss: ["Necromante Aprendiz"],
-    boss: ["Lorde Esqueleto"],
-  },
-  {
-    id: "map_3",
-    name: "Pico Congelado",
-    requiredClears: 2,
-    mobsNormal: ["Lobo do Gelo", "Elemental de Neve", "Yeti Jovem"],
-    mobsElite: ["Golem de Gelo", "Bruxa da Nevasca"],
-    miniBoss: ["Dragão Branco Filhote"],
-    boss: ["Rei do Inverno"],
-  },
-];
-
 myGroup.dungeonsCleared = 0;
 
 // ==========================================
@@ -89,6 +59,7 @@ function saveMidBattle() {
   if (!currentUser) return;
   const stateToSave = {
     currentMapId: gameState.currentMapId,
+    currentDungeonIndex: gameState.currentDungeonIndex,
     currentRoom: gameState.currentRoom,
     enemiesLive: gameState.enemiesLive,
     sessionRewards: gameState.sessionRewards,
@@ -167,6 +138,8 @@ async function handleAccount(action) {
 
           if (data.saveData.dungeonState) {
             gameState.currentMapId = data.saveData.dungeonState.currentMapId;
+            gameState.currentDungeonIndex =
+              data.saveData.dungeonState.currentDungeonIndex;
             gameState.currentRoom = data.saveData.dungeonState.currentRoom;
             gameState.enemiesLive = data.saveData.dungeonState.enemiesLive;
             gameState.sessionRewards =
@@ -326,63 +299,80 @@ function renderMapScreen() {
   mapGoldCounter.innerText = myGroup.gold;
   worldMapsContainer.innerHTML = "";
 
-  campaignMaps.forEach((map) => {
-    // LÓGICA DE PROGRESSÃO:
-    const isCleared = myGroup.dungeonsCleared > map.requiredClears; // Já passou daqui
-    const isUnlocked = myGroup.dungeonsCleared === map.requiredClears; // É a fase atual
+  database.maps.forEach((map) => {
+    // Cria um cabeçalho para o Mapa
+    const mapHeader = document.createElement("h4");
+    mapHeader.className =
+      "text-warning mt-4 mb-2 border-bottom border-secondary pb-1";
+    mapHeader.innerText = `🗺️ ${map.name}`;
+    worldMapsContainer.appendChild(mapHeader);
 
-    const col = document.createElement("div");
-    col.className = "col-md-8 mb-3";
+    // Lista as 3 Dungeons daquele mapa
+    map.dungeons.forEach((dungeon, index) => {
+      const isCleared = myGroup.dungeonsCleared > dungeon.requiredClears;
+      const isUnlocked = myGroup.dungeonsCleared === dungeon.requiredClears;
 
-    // ESTILO DO CARTÃO: Verde(Concluído), Azul(Aberto), Cinza(Bloqueado)
-    let cardStyle = "border-secondary bg-secondary opacity-75";
-    if (isCleared) cardStyle = "border-success bg-dark opacity-75";
-    if (isUnlocked) cardStyle = "border-info bg-dark shadow-lg";
+      const col = document.createElement("div");
+      col.className = "col-md-8 mb-2";
 
-    const card = document.createElement("div");
-    card.className = `card p-3 border-2 ${cardStyle}`;
-    card.style.cursor = isUnlocked ? "pointer" : "not-allowed";
+      let cardStyle = "border-secondary bg-secondary opacity-75";
+      if (isCleared) cardStyle = "border-success bg-dark opacity-75";
+      if (isUnlocked) cardStyle = "border-info bg-dark shadow-lg";
 
-    let btnClass = "btn-secondary";
-    let btnText = "BLOQUEADO";
-    if (isCleared) {
-      btnClass = "btn-success";
-      btnText = "CONCLUÍDO ✔️";
-    } else if (isUnlocked) {
-      btnClass = "btn-primary";
-      btnText = "ENTRAR";
-    }
+      const card = document.createElement("div");
+      card.className = `card p-2 border-2 ${cardStyle}`;
+      card.style.cursor = isUnlocked ? "pointer" : "not-allowed";
 
-    card.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h4 class="${isUnlocked ? "text-warning" : isCleared ? "text-success" : "text-dark"} m-0">
-            ${isUnlocked ? "🗺️" : isCleared ? "✅" : "🔒"} ${map.name}
-          </h4>
-          <small class="${isUnlocked || isCleared ? "text-light" : "text-dark"}">10 Salas (Boss: ${map.boss[0]})</small>
+      let btnClass = "btn-secondary";
+      let btnText = "BLOQUEADO";
+      if (isCleared) {
+        btnClass = "btn-success";
+        btnText = "CONCLUÍDO ✔️";
+      } else if (isUnlocked) {
+        btnClass = "btn-primary";
+        btnText = "ENTRAR";
+      }
+
+      // Mostra qual é o Boss final daquela Dungeon específica
+      let bossText = dungeon.isFinal
+        ? `(Boss: ${map.boss[0]})`
+        : `(Mini-Boss: ${map.miniBoss[0]})`;
+
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="${isUnlocked ? "text-warning" : isCleared ? "text-success" : "text-dark"} m-0">
+              ${isUnlocked ? "▶️" : isCleared ? "✅" : "🔒"} ${dungeon.name}
+            </h5>
+            <small class="${isUnlocked || isCleared ? "text-light" : "text-dark"}">10 Salas ${bossText}</small>
+          </div>
+          <button class="btn btn-sm ${btnClass} fw-bold" ${!isUnlocked ? "disabled" : ""}>
+            ${btnText}
+          </button>
         </div>
-        <button class="btn ${btnClass} fw-bold" ${!isUnlocked ? "disabled" : ""}>
-          ${btnText}
-        </button>
-      </div>
-    `;
+      `;
 
-    // SÓ PERMITE ENTRAR SE FOR A FASE EXATA
-    if (isUnlocked) {
-      card.addEventListener("click", () => {
-        if (
-          !document.getElementById("screen-map").classList.contains("d-none")
-        ) {
-          gameState.currentMapId = map.id;
-          gameState.currentRoom = 1;
-          showScreen("screen-battle");
-          startRoom();
-        }
-      });
-    }
+      if (isUnlocked) {
+        card.addEventListener("click", () => {
+          if (
+            !document.getElementById("screen-map").classList.contains("d-none")
+          ) {
+            gameState.currentMapId = map.id;
+            gameState.currentDungeonIndex = index; // Guarda em qual dungeon entramos!
+            gameState.currentRoom = 1;
 
-    col.appendChild(card);
-    worldMapsContainer.appendChild(col);
+            // Atualiza o nome da Dungeon na tela de batalha
+            dungeonName.innerText = dungeon.name;
+
+            showScreen("screen-battle");
+            startRoom();
+          }
+        });
+      }
+
+      col.appendChild(card);
+      worldMapsContainer.appendChild(col);
+    });
   });
 }
 
@@ -507,29 +497,35 @@ function startRoom() {
 
   if (gameState.currentRoom === 1) {
     gameState.sessionRewards = { gold: 0, exp: 0, drops: [], levelUps: [] };
-    gameState.turnQueue = []; // Zera a fila apenas no começo do mapa
+    gameState.turnQueue = [];
   }
 
   gameState.enemiesLive = [];
   gameState.activeCharacter = null;
   gameState.selectedTarget = null;
 
-  const currentMap = campaignMaps.find((m) => m.id === gameState.currentMapId);
+  const currentMap = database.maps.find((m) => m.id === gameState.currentMapId);
+  const currentDungeon = currentMap.dungeons[gameState.currentDungeonIndex];
   const room = gameState.currentRoom;
 
   let enemyPool = [];
   let numEnemies = Math.floor(Math.random() * 3) + 1;
 
-  if (room >= 1 && room <= 3) {
+  // REGRAS DE SPAWN E BOSS
+  if (room >= 1 && room <= 4) {
     enemyPool = currentMap.mobsNormal;
-  } else if (room === 4 || (room >= 6 && room <= 9)) {
+  } else if (room >= 6 && room <= 9) {
     enemyPool = currentMap.mobsElite;
   } else if (room === 5) {
-    enemyPool = currentMap.miniBoss;
+    enemyPool = currentMap.miniBoss; // Metade da Dungeon sempre tem Mini-Boss!
     numEnemies = 1;
   } else if (room === 10) {
-    enemyPool = currentMap.boss;
-    numEnemies = 1;
+    if (currentDungeon.isFinal) {
+      enemyPool = currentMap.boss; // Última Dungeon tem o Boss Final
+    } else {
+      enemyPool = currentMap.mobsElite; // Dungeons normais fecham com grupo Elite
+      numEnemies = 3;
+    }
   }
 
   const letras = ["A", "B", "C"];
@@ -541,16 +537,19 @@ function startRoom() {
 
     newEnemy.battleId = `enemy_${i + 1}`;
     newEnemy.name = enemyData ? enemyName : `[Falta Criar] ${enemyName}`;
+    if (numEnemies > 1) newEnemy.name = `${newEnemy.name} ${letras[i]}`;
 
-    if (numEnemies > 1) {
-      newEnemy.name = `${newEnemy.name} ${letras[i]}`;
-    }
-
-    if (room === 4 || room >= 5) {
-      newEnemy.stats.max_hp = Math.floor(newEnemy.stats.max_hp * 1.5);
-      newEnemy.stats.current_hp = newEnemy.stats.max_hp;
-      newEnemy.stats.base_attack += 3;
-    }
+    // APLICA O MULTIPLICADOR DE DIFICULDADE DA DUNGEON
+    newEnemy.stats.max_hp = Math.floor(
+      newEnemy.stats.max_hp * currentDungeon.diff,
+    );
+    newEnemy.stats.current_hp = newEnemy.stats.max_hp;
+    newEnemy.stats.base_attack = Math.floor(
+      newEnemy.stats.base_attack * currentDungeon.diff,
+    );
+    newEnemy.stats.base_defense = Math.floor(
+      newEnemy.stats.base_defense * currentDungeon.diff,
+    );
 
     gameState.enemiesLive.push(newEnemy);
   }
@@ -575,7 +574,7 @@ function startRoom() {
     );
     // Adiciona os monstros recém-nascidos na fila
     gameState.turnQueue.push(...gameState.enemiesLive);
-    // Reordena a fila pela velocidade (sem apagar quem já estava esperando a vez!)
+    // Reordena a fila pela velocidade
     gameState.turnQueue.sort((a, b) => b.stats.speed - a.stats.speed);
   }
 
@@ -790,9 +789,15 @@ function enemyTurnIA() {
 // 9. RECOMPENSAS, DROPS E PROGRESSÃO
 // ==========================================
 function giveReward() {
-  const goldReward = 30 * gameState.currentRoom;
+  const currentMap = database.maps.find((m) => m.id === gameState.currentMapId);
+  const currentDungeon = currentMap.dungeons[gameState.currentDungeonIndex];
 
-  const expReward = 15 + 5 * gameState.currentRoom;
+  const goldReward = Math.floor(
+    30 * gameState.currentRoom * currentDungeon.diff,
+  );
+  const expReward = Math.floor(
+    (15 + 5 * gameState.currentRoom) * currentDungeon.diff,
+  );
 
   myGroup.gold += goldReward;
   let expMessage = `O grupo encontrou ${goldReward} ouro!<br> O grupo ganhou ${expReward} EXP!`;

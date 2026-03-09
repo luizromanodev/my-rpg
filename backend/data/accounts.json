@@ -67,7 +67,66 @@
             }
           ]
         }
-      ]
+      ],
+      "dungeonState": {
+        "currentMapId": "map_1",
+        "currentDungeonIndex": 0,
+        "currentRoom": 1,
+        "enemiesLive": [
+          {
+            "id": "m1",
+            "name": "Slime Verde A",
+            "level": 1,
+            "stats": {
+              "max_hp": 30,
+              "current_hp": 30,
+              "base_attack": 8,
+              "base_defense": 2,
+              "speed": 5
+            },
+            "rewards": {
+              "exp": 15,
+              "gold": 5,
+              "drops": [
+                {
+                  "item_id": 1,
+                  "chance": 0.3
+                }
+              ]
+            },
+            "battleId": "enemy_1"
+          },
+          {
+            "id": "m3",
+            "name": "Goblin Menor B",
+            "level": 3,
+            "stats": {
+              "max_hp": 45,
+              "current_hp": 45,
+              "base_attack": 14,
+              "base_defense": 4,
+              "speed": 10
+            },
+            "rewards": {
+              "exp": 30,
+              "gold": 12,
+              "drops": [
+                {
+                  "item_id": 1,
+                  "chance": 0.4
+                }
+              ]
+            },
+            "battleId": "enemy_2"
+          }
+        ],
+        "sessionRewards": {
+          "gold": 0,
+          "exp": 0,
+          "drops": [],
+          "levelUps": []
+        }
+      }
     }
   },
   "only": {
@@ -169,7 +228,89 @@
             }
           ]
         }
-      ]
+      ],
+      "dungeonState": {
+        "currentMapId": "map_1",
+        "currentDungeonIndex": 0,
+        "currentRoom": 1,
+        "enemiesLive": [
+          {
+            "id": "m1",
+            "name": "Slime Verde A",
+            "level": 1,
+            "stats": {
+              "max_hp": 30,
+              "current_hp": 30,
+              "base_attack": 8,
+              "base_defense": 2,
+              "speed": 5
+            },
+            "rewards": {
+              "exp": 15,
+              "gold": 5,
+              "drops": [
+                {
+                  "item_id": 1,
+                  "chance": 0.3
+                }
+              ]
+            },
+            "battleId": "enemy_1"
+          },
+          {
+            "id": "m2",
+            "name": "Morcego Gigante B",
+            "level": 2,
+            "stats": {
+              "max_hp": 25,
+              "current_hp": 25,
+              "base_attack": 12,
+              "base_defense": 1,
+              "speed": 15
+            },
+            "rewards": {
+              "exp": 20,
+              "gold": 8,
+              "drops": [
+                {
+                  "item_id": 1,
+                  "chance": 0.2
+                }
+              ]
+            },
+            "battleId": "enemy_2"
+          },
+          {
+            "id": "m2",
+            "name": "Morcego Gigante C",
+            "level": 2,
+            "stats": {
+              "max_hp": 25,
+              "current_hp": 25,
+              "base_attack": 12,
+              "base_defense": 1,
+              "speed": 15
+            },
+            "rewards": {
+              "exp": 20,
+              "gold": 8,
+              "drops": [
+                {
+                  "item_id": 1,
+                  "chance": 0.2
+                }
+              ]
+            },
+            "battleId": "enemy_3"
+          }
+        ],
+        "sessionRewards": {
+          "gold": 0,
+          "exp": 0,
+          "drops": [],
+          "levelUps": []
+        }
+      }
     }
   }
 }

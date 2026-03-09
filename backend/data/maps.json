@@ -1,0 +1,86 @@
+[
+  {
+    "id": "map_1",
+    "name": "Caverna dos Goblins",
+    "mobsNormal": ["Slime Verde", "Morcego Gigante", "Goblin Menor"],
+    "mobsElite": ["Goblin Guerreiro", "Lobo Atroz"],
+    "miniBoss": ["Xamã Goblin"],
+    "boss": ["Rei Goblin"],
+    "dungeons": [
+      {
+        "name": "1. Entrada da Caverna",
+        "requiredClears": 0,
+        "diff": 1.0,
+        "isFinal": false
+      },
+      {
+        "name": "2. Profundezas Escuras",
+        "requiredClears": 1,
+        "diff": 1.2,
+        "isFinal": false
+      },
+      {
+        "name": "3. Trono do Rei Goblin",
+        "requiredClears": 2,
+        "diff": 1.5,
+        "isFinal": true
+      }
+    ]
+  },
+  {
+    "id": "map_2",
+    "name": "Cidade Soterrada",
+    "mobsNormal": ["Esqueleto Raso", "Rato Zumbi", "Ladrão de Tumbas"],
+    "mobsElite": ["Cavaleiro Caído", "Aparição Sombria"],
+    "miniBoss": ["Necromante Aprendiz"],
+    "boss": ["Lorde Esqueleto"],
+    "dungeons": [
+      {
+        "name": "1. Portões de Ossos",
+        "requiredClears": 3,
+        "diff": 1.8,
+        "isFinal": false
+      },
+      {
+        "name": "2. Catacumbas Reais",
+        "requiredClears": 4,
+        "diff": 2.1,
+        "isFinal": false
+      },
+      {
+        "name": "3. Câmara do Lorde",
+        "requiredClears": 5,
+        "diff": 2.5,
+        "isFinal": true
+      }
+    ]
+  },
+  {
+    "id": "map_3",
+    "name": "Pico Congelado",
+    "mobsNormal": ["Lobo do Gelo", "Elemental de Neve", "Yeti Jovem"],
+    "mobsElite": ["Golem de Gelo", "Bruxa da Nevasca"],
+    "miniBoss": ["Dragão Branco Filhote"],
+    "boss": ["Rei do Inverno"],
+    "dungeons": [
+      {
+        "name": "1. Trilha da Nevasca",
+        "requiredClears": 6,
+        "diff": 2.8,
+        "isFinal": false
+      },
+      {
+        "name": "2. Cavernas de Cristal",
+        "requiredClears": 7,
+        "diff": 3.2,
+        "isFinal": false
+      },
+      {
+        "name": "3. Palácio de Gelo",
+        "requiredClears": 8,
+        "diff": 3.8,
+        "isFinal": true
+      }
+    ]
+  }
+]

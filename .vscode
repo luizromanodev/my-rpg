@@ -1,7 +1,0 @@
-{
-  "liveServer.settings.root": "/frontend",
-  "liveServer.settings.ignoreFiles": [
-    "backend/**",
-    ".vscode/**"
-  ]
-}

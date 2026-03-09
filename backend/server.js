@@ -29,6 +29,7 @@ app.get("/", (req, res) => res.send("API do RPG está funcionando!"));
 app.get("/api/characters", (req, res) => readJsonFile("characters.json", res));
 app.get("/api/items", (req, res) => readJsonFile("items.json", res));
 app.get("/api/enemies", (req, res) => readJsonFile("enemies.json", res));
+app.get("/api/maps", (req, res) => readJsonFile("maps.json", res));
 
 // --- ROTAS DE CONTAS ---
 app.post("/api/register", (req, res) => {
@@ -77,7 +78,7 @@ app.post("/api/save-team", (req, res) => {
 });
 
 // --- SALVAR PROGRESSO DA DUNGEON ---
-app.post("api/save-progress", (req, res) => {
+app.post("/api/save-progress", (req, res) => {
   const { username, dungeonsCleared, gold } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
@@ -96,7 +97,7 @@ app.post("api/save-progress", (req, res) => {
 });
 
 // --- SALVAR BATALHA EM TEMPO REAL ---
-app.post("api/save-battle", (req, res) => {
+app.post("/api/save-battle", (req, res) => {
   const { username, team, dungeonState } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 

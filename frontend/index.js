@@ -45,6 +45,7 @@ let gameState = {
   currentRoom: 1,
   maxRooms: 10,
   currentMapId: null,
+  sessionRewards: { gold: 0, exp: 0, drops: [], levelUps: [] },
 };
 
 let turnTimer = null;
@@ -80,6 +81,41 @@ const campaignMaps = [
 ];
 
 myGroup.dungeonsCleared = 0;
+
+// ==========================================
+// AUTO-SAVE DE COMBATE
+// ==========================================
+function saveMidBattle() {
+  if (!currentUser) return;
+  const stateToSave = {
+    currentMapId: gameState.currentMapId,
+    currentRoom: gameState.currentRoom,
+    enemiesLive: gameState.enemiesLive,
+    sessionRewards: gameState.sessionRewards,
+  };
+  fetch("http://localhost:3000/api/save-battle", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: currentUser,
+      team: myGroup.members,
+      dungeonState: stateToSave,
+    }),
+  });
+}
+
+function clearMidBattle() {
+  if (!currentUser) return;
+  fetch("http://localhost:3000/api/save-battle", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: currentUser,
+      team: myGroup.members,
+      dungeonState: null,
+    }),
+  });
+}
 
 // ==========================================
 // 3. GERENCIAMENTO DE TELAS E CONTAS
@@ -128,10 +164,30 @@ async function handleAccount(action) {
 
         if (data.saveData.team && data.saveData.team.length === 3) {
           myGroup.members = data.saveData.team;
-          setTimeout(() => {
-            renderMapScreen();
-            showScreen("screen-map");
-          }, 1000);
+
+          if (data.saveData.dungeonState) {
+            gameState.currentMapId = data.saveData.dungeonState.currentMapId;
+            gameState.currentRoom = data.saveData.dungeonState.currentRoom;
+            gameState.enemiesLive = data.saveData.dungeonState.enemiesLive;
+            gameState.sessionRewards =
+              data.saveData.dungeonState.sessionRewards;
+
+            setTimeout(() => {
+              showScreen("screen-battle");
+              battleLog.innerHTML = "";
+              logMessage(
+                `Batalha Restaurada! Você voltou para a Sala ${gameState.currentRoom}.`,
+                "text-info fw-bold",
+              );
+              buildTurnQueue();
+              processNextTurn();
+            }, 1000);
+          } else {
+            setTimeout(() => {
+              renderMapScreen();
+              showScreen("screen-map");
+            }, 1000);
+          }
         } else {
           renderTavern();
           setTimeout(() => showScreen("screen-tavern"), 1000);
@@ -271,26 +327,47 @@ function renderMapScreen() {
   worldMapsContainer.innerHTML = "";
 
   campaignMaps.forEach((map) => {
-    const isUnlocked = myGroup.dungeonsCleared >= map.requiredClears;
+    // LÓGICA DE PROGRESSÃO:
+    const isCleared = myGroup.dungeonsCleared > map.requiredClears; // Já passou daqui
+    const isUnlocked = myGroup.dungeonsCleared === map.requiredClears; // É a fase atual
+
     const col = document.createElement("div");
     col.className = "col-md-8 mb-3";
 
+    // ESTILO DO CARTÃO: Verde(Concluído), Azul(Aberto), Cinza(Bloqueado)
+    let cardStyle = "border-secondary bg-secondary opacity-75";
+    if (isCleared) cardStyle = "border-success bg-dark opacity-75";
+    if (isUnlocked) cardStyle = "border-info bg-dark shadow-lg";
+
     const card = document.createElement("div");
-    card.className = `card p-3 border-2 ${isUnlocked ? "border-info bg-dark" : "border-secondary bg-secondary opacity-75"}`;
+    card.className = `card p-3 border-2 ${cardStyle}`;
     card.style.cursor = isUnlocked ? "pointer" : "not-allowed";
+
+    let btnClass = "btn-secondary";
+    let btnText = "BLOQUEADO";
+    if (isCleared) {
+      btnClass = "btn-success";
+      btnText = "CONCLUÍDO ✔️";
+    } else if (isUnlocked) {
+      btnClass = "btn-primary";
+      btnText = "ENTRAR";
+    }
 
     card.innerHTML = `
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <h4 class="${isUnlocked ? "text-warning" : "text-dark"} m-0">${isUnlocked ? "🗺️" : "🔒"} ${map.name}</h4>
-          <small class="${isUnlocked ? "text-light" : "text-dark"}">10 Salas (Boss: ${map.boss[0]})</small>
+          <h4 class="${isUnlocked ? "text-warning" : isCleared ? "text-success" : "text-dark"} m-0">
+            ${isUnlocked ? "🗺️" : isCleared ? "✅" : "🔒"} ${map.name}
+          </h4>
+          <small class="${isUnlocked || isCleared ? "text-light" : "text-dark"}">10 Salas (Boss: ${map.boss[0]})</small>
         </div>
-        <button class="btn ${isUnlocked ? "btn-primary" : "btn-secondary"} fw-bold" ${!isUnlocked ? "disabled" : ""}>
-          ${isUnlocked ? "ENTRAR" : "BLOQUEADO"}
+        <button class="btn ${btnClass} fw-bold" ${!isUnlocked ? "disabled" : ""}>
+          ${btnText}
         </button>
       </div>
     `;
 
+    // SÓ PERMITE ENTRAR SE FOR A FASE EXATA
     if (isUnlocked) {
       card.addEventListener("click", () => {
         if (
@@ -324,8 +401,12 @@ function updateUI() {
     const isMyTurn =
       gameState.activeCharacter && gameState.activeCharacter.id === hero.id;
 
+    // GERENCIADOR DE ANIMAÇÕES
     let extraClass = "";
-    if (hero.justDied) {
+    if (hero.justLeveledUp) {
+      extraClass = "anim-level-up";
+      hero.justLeveledUp = false;
+    } else if (hero.justDied) {
       extraClass = "anim-death";
       hero.justDied = false;
     } else if (hero.justTookDamage) {
@@ -355,6 +436,9 @@ function updateUI() {
         <div class="progress-bar ${isDead ? "bg-secondary" : "bg-success"}" style="width: ${Math.max(0, hpPercent)}%"></div>
       </div>
     `;
+
+    card.style.cursor = "pointer";
+    card.addEventListener("click", () => showHeroDetails(hero));
     heroTeamContainer.appendChild(card);
   });
 
@@ -421,8 +505,12 @@ function logMessage(msg, colorClass = "text-light") {
 function startRoom() {
   clearTimeout(turnTimer);
 
+  if (gameState.currentRoom === 1) {
+    gameState.sessionRewards = { gold: 0, exp: 0, drops: [], levelUps: [] };
+    gameState.turnQueue = []; // Zera a fila apenas no começo do mapa
+  }
+
   gameState.enemiesLive = [];
-  gameState.turnQueue = [];
   gameState.activeCharacter = null;
   gameState.selectedTarget = null;
 
@@ -477,7 +565,21 @@ function startRoom() {
     "text-warning fw-bold",
   );
 
-  buildTurnQueue();
+  if (gameState.currentRoom === 1) {
+    // Sala 1: Ninguém tem turno ainda, calcula do zero
+    buildTurnQueue();
+  } else {
+    // Salas Seguintes: Remove os mortos da fila atual
+    gameState.turnQueue = gameState.turnQueue.filter(
+      (c) => c.stats.current_hp > 0,
+    );
+    // Adiciona os monstros recém-nascidos na fila
+    gameState.turnQueue.push(...gameState.enemiesLive);
+    // Reordena a fila pela velocidade (sem apagar quem já estava esperando a vez!)
+    gameState.turnQueue.sort((a, b) => b.stats.speed - a.stats.speed);
+  }
+
+  saveMidBattle();
   processNextTurn();
 }
 
@@ -622,6 +724,7 @@ btnAttack.addEventListener("click", () => {
     updateUI();
 
     if (!checkBattleEnd()) {
+      saveMidBattle();
       clearTimeout(turnTimer);
       turnTimer = setTimeout(() => {
         processNextTurn();
@@ -674,6 +777,7 @@ function enemyTurnIA() {
     updateUI();
 
     if (!checkBattleEnd()) {
+      saveMidBattle();
       clearTimeout(turnTimer);
       turnTimer = setTimeout(() => {
         processNextTurn();
@@ -687,10 +791,14 @@ function enemyTurnIA() {
 // ==========================================
 function giveReward() {
   const goldReward = 30 * gameState.currentRoom;
-  const expReward = 45 * gameState.currentRoom;
+
+  const expReward = 15 + 5 * gameState.currentRoom;
 
   myGroup.gold += goldReward;
-  let expMessage = `💰 O grupo encontrou ${goldReward} ouro!<br>🌟 O grupo ganhou ${expReward} EXP!`;
+  let expMessage = `O grupo encontrou ${goldReward} ouro!<br> O grupo ganhou ${expReward} EXP!`;
+
+  gameState.sessionRewards.gold += goldReward;
+  gameState.sessionRewards.exp += expReward;
 
   // COLETAR DROPS
   gameState.enemiesLive.forEach((enemy) => {
@@ -699,7 +807,7 @@ function giveReward() {
         if (Math.random() <= drop.chance) {
           const luckyHero = myGroup.members.find((h) => h.stats.current_hp > 0);
           if (luckyHero) {
-            if (!luckyHero.inventory) luckyHero.inventory = []; // Segurança extra
+            if (!luckyHero.inventory) luckyHero.inventory = [];
 
             const itemInBag = luckyHero.inventory.find(
               (i) => i.item_id === drop.item_id,
@@ -714,6 +822,7 @@ function giveReward() {
               : `Item ID ${drop.item_id}`;
 
             expMessage += `<br>Drop: O grupo recolheu 1x <span class="text-info">${itemName}</span>!`;
+            gameState.sessionRewards.drops.push(itemName);
           }
         }
       });
@@ -734,18 +843,29 @@ function giveReward() {
       hero.exp.current -= hero.exp.max;
       hero.exp.max = Math.floor(hero.exp.max * 1.5);
 
+      // ATUALIZAÇÃO DOS STATUS
       hero.stats.max_hp += hero.growth.hp;
-      hero.stats.current_hp = hero.stats.max_hp;
+      // Adiciona apenas a vida do crescimento na vida atual
+      hero.stats.current_hp += hero.growth.hp;
+
       hero.stats.base_attack += hero.growth.attack;
       hero.stats.base_defense += hero.growth.defense;
       hero.stats.speed += hero.growth.speed;
 
       expMessage += `<br>⬆️ <span class="text-info">${hero.name}</span> subiu para o Nível ${hero.level}!`;
-      hero.justHealed = true;
+
+      hero.justLeveledUp = true;
+
+      gameState.sessionRewards.levelUps.push({
+        name: hero.name,
+        level: hero.level,
+        hpInc: hero.growth.hp,
+        atkInc: hero.growth.attack,
+        defInc: hero.growth.defense,
+      });
     }
   });
 
-  // Escreve as recompensas no log
   const p = document.createElement("p");
   p.className = `m-0 text-warning fw-bold mb-2`;
   p.innerHTML = expMessage;
@@ -761,7 +881,9 @@ function checkBattleEnd() {
     (e) => e.stats.current_hp > 0,
   );
 
+  // GAME OVER
   if (aliveHeroes.length === 0) {
+    clearMidBattle();
     logMessage(
       `GAME OVER! Seu grupo foi aniquilado na Sala ${gameState.currentRoom}...`,
       "text-danger fw-bold",
@@ -772,21 +894,27 @@ function checkBattleEnd() {
     return true;
   }
 
+  // SALA LIMPA
   if (aliveEnemies.length === 0) {
     logMessage(`SALA ${gameState.currentRoom} LIMPA!`, "text-success fw-bold");
     giveReward();
 
+    // VITÓRIA NA DUNGEON
     if (gameState.currentRoom >= gameState.maxRooms) {
       logMessage(
-        `DUNGEON CONCLUÍDA! Você venceu a Caverna!`,
+        `DUNGEON CONCLUÍDA! Você venceu o mapa!`,
         "text-warning fw-bold text-uppercase",
       );
       btnAttack.disabled = true;
       btnSkill.disabled = true;
       btnPotion.disabled = true;
 
+      clearMidBattle();
+      // Libera o próximo mapa
       myGroup.dungeonsCleared++;
 
+      // Salvamento de mapa e heróis
+      // Salva o Ouro e o Progresso de Mapas
       fetch("http://localhost:3000/api/save-progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -797,13 +925,32 @@ function checkBattleEnd() {
         }),
       })
         .then((res) => res.json())
-        .then((data) => console.log("Servidor diz: ", data.message))
+        .then((data) => console.log("Progresso salvo: ", data.message))
         .catch((err) => console.error("Erro ao salvar progresso:", err));
 
+      // Cura a equipe para a próxima aventura
+      myGroup.members.forEach((hero) => {
+        hero.stats.current_hp = hero.stats.max_hp;
+      });
+
+      // Salva a Equipe (EXP, Níveis, Status e Itens no Inventário)
+      fetch("http://localhost:3000/api/save-team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: currentUser,
+          team: myGroup.members,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log("Time salvo: ", data.message))
+        .catch((err) => console.error("Erro ao salvar time:", err));
+
       setTimeout(() => {
-        showScreen("screen-map");
-        renderMapScreen();
-      }, 4000);
+        showDungeonSummary();
+      }, 2000);
+
+      // AVANÇAR PARA A PRÓXIMA SALA
     } else {
       gameState.currentRoom++;
       logMessage(
@@ -833,7 +980,7 @@ btnPotion.addEventListener("click", () => {
 
   if (!potion || potion.quantity <= 0) {
     logMessage(
-      `⚠️ ${hero.name} não tem Poções de Vida no inventário!`,
+      ` ${hero.name} não tem Poções de Vida no inventário!`,
       "text-warning",
     );
     return;
@@ -853,12 +1000,14 @@ btnPotion.addEventListener("click", () => {
   );
 
   logMessage(
-    `🧪 ${hero.name} bebeu uma Poção! Restam: ${potion.quantity}`,
+    `${hero.name} bebeu uma Poção! Restam: ${potion.quantity}`,
     "text-success fw-bold",
   );
   hero.justHealed = true;
 
   updateUI();
+  saveMidBattle();
+
   clearTimeout(turnTimer);
   turnTimer = setTimeout(() => {
     processNextTurn();
@@ -922,6 +1071,7 @@ btnSkill.addEventListener("click", () => {
     updateUI();
 
     if (!checkBattleEnd()) {
+      saveMidBattle();
       clearTimeout(turnTimer);
       turnTimer = setTimeout(() => {
         processNextTurn();
@@ -946,4 +1096,121 @@ function getStarsHTML(starCount) {
 
   html += "</div>";
   return html;
+}
+
+// ==========================================
+// 12. SISTEMA DE MODAIS
+// ==========================================
+const modalHero = document.getElementById("modal-hero");
+const modalHeroContent = document.getElementById("modal-hero-content");
+document.getElementById("btn-close-hero").addEventListener("click", () => {
+  modalHero.classList.add("d-none");
+});
+
+function showHeroDetails(hero) {
+  modalHero.classList.remove("d-none");
+
+  modalHeroContent.innerHTML = `
+  <h3 class="text-info text-center">${hero.name}</h3>
+    <div class="text-center text-warning mb-2">${getStarsHTML(hero.stars)}</div>
+    <div class="text-center mb-3"><span class="badge bg-secondary">Nível ${hero.level || 1}</span></div>
+    
+    <h5 class="text-light border-bottom border-secondary pb-1">Atributos</h5>
+    <ul class="list-unstyled">
+      <li>Vida: ${Math.max(0, hero.stats.current_hp)} / ${hero.stats.max_hp}</li>
+      <li>Ataque: ${hero.stats.base_attack}</li>
+      <li>Defesa: ${hero.stats.base_defense}</li>
+      <li>Velocidade: ${hero.stats.speed}</li>
+    </ul>
+
+    <h5 class="text-light border-bottom border-secondary pb-1 mt-3">Equipamentos (Em Breve)</h5>
+    <ul class="list-unstyled text-secondary">
+      <li>Arma: Nenhuma</li>
+      <li>Armadura: Nenhuma</li>
+    </ul>
+    
+    <div class="progress mt-3 bg-dark border border-secondary" style="height: 10px;">
+      <div class="progress-bar bg-info" style="width: ${(hero.exp.current / hero.exp.max) * 100}%"></div>
+    </div>
+    <div class="text-center text-secondary" style="font-size:0.7rem;">EXP: ${hero.exp.current} / ${hero.exp.max}</div>
+  `;
+}
+
+const modalSummary = document.getElementById("modal-summary");
+const modalSummaryContent = document.getElementById("modal-summary-content");
+document.getElementById("btn-finish-dungeon").addEventListener("click", () => {
+  modalSummary.classList.add("d-none");
+  showScreen("screen-map");
+  renderMapScreen();
+});
+
+function showDungeonSummary() {
+  modalSummary.classList.remove("d-none");
+  const sr = gameState.sessionRewards;
+
+  // AGRUPAR ITENS REPETIDOS
+  const dropCounts = {};
+  sr.drops.forEach((item) => {
+    // Se o item já existe na lista, soma 1. Se não, começa com 1.
+    dropCounts[item] = (dropCounts[item] || 0) + 1;
+  });
+
+  const dropKeys = Object.keys(dropCounts);
+  let dropsHtml =
+    dropKeys.length > 0
+      ? dropKeys
+          .map(
+            (item) =>
+              `<li><span class="text-warning fw-bold">${dropCounts[item]}x</span> <span class="text-info">${item}</span></li>`,
+          )
+          .join("")
+      : "<li class='text-secondary'>Nenhum item encontrado.</li>";
+
+  // AGRUPAR STATUS DE LEVEL UP
+  const groupedLevels = {};
+  sr.levelUps.forEach((l) => {
+    if (!groupedLevels[l.name]) {
+      // Primeira vez que o herói upou na dungeon
+      groupedLevels[l.name] = {
+        startLevel: l.level - 1,
+        endLevel: l.level,
+        hpInc: l.hpInc,
+        atkInc: l.atkInc,
+        defInc: l.defInc,
+      };
+    } else {
+      // Se ele já upou antes, só atualiza o level final e SOMA os status ganhos
+      groupedLevels[l.name].endLevel = l.level;
+      groupedLevels[l.name].hpInc += l.hpInc;
+      groupedLevels[l.name].atkInc += l.atkInc;
+      groupedLevels[l.name].defInc += l.defInc;
+    }
+  });
+
+  const levelKeys = Object.keys(groupedLevels);
+  let levelUpsHtml =
+    levelKeys.length > 0
+      ? levelKeys
+          .map((name) => {
+            const data = groupedLevels[name];
+            return `
+          <div class="mb-2 p-2 border border-success rounded bg-dark">
+            <strong class="text-success">⬆️ ${name} evoluiu do Nível ${data.startLevel} > ${data.endLevel}!</strong><br>
+            <small class="text-light">+ ${data.hpInc} HP | + ${data.atkInc} ATQ | + ${data.defInc} DEF</small>
+          </div>
+        `;
+          })
+          .join("")
+      : "<p class='text-secondary'>Ninguém subiu de nível desta vez.</p>";
+
+  modalSummaryContent.innerHTML = `
+    <div class="row text-center mb-4">
+      <div class="col-6"><h4 class="text-warning">+${sr.gold}</h4><small>Ouro</small></div>
+      <div class="col-6"><h4 class="text-info">+${sr.exp}</h4><small>EXP (Por Herói)</small></div>
+    </div>
+    <h5 class="text-light border-bottom border-secondary pb-1">Tesouros Coletados</h5>
+    <ul class="list-unstyled mb-4">${dropsHtml}</ul>
+    <h5 class="text-light border-bottom border-secondary pb-1">Evolução da Equipe</h5>
+    ${levelUpsHtml}
+  `;
 }

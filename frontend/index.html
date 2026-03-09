@@ -281,7 +281,7 @@
         }
       }
 
-      /* Faz as estrelas pulsarem como se estivessem flutuando */
+      /* Faz as estrelas pulsarem */
       @keyframes pulse-chromatic {
         from {
           filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
@@ -291,6 +291,27 @@
           filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
           transform: scale(1.15) translateY(-2px);
         }
+      }
+
+      /* 7. Level Up */
+      @keyframes levelUpAnim {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+        }
+        50% {
+          transform: scale(1.15);
+          box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+          border-color: #ffd700;
+          z-index: 20;
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+        }
+      }
+      .anim-level-up {
+        animation: levelUpAnim 1.2s ease-in-out;
       }
     </style>
   </head>
@@ -457,6 +478,68 @@
             ></div>
           </div>
         </div>
+      </div>
+    </div>
+    <div
+      id="modal-hero"
+      class="d-none"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <div
+        class="card bg-dark border-info p-4 text-light shadow-lg"
+        style="max-width: 400px; width: 90%; position: relative"
+      >
+        <button
+          id="btn-close-hero"
+          class="btn btn-sm btn-danger"
+          style="position: absolute; top: 10px; right: 10px"
+        >
+          X
+        </button>
+        <div id="modal-hero-content"></div>
+      </div>
+    </div>
+
+    <div
+      id="modal-summary"
+      class="d-none"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <div
+        class="card bg-dark border-warning p-4 text-light shadow-lg text-center"
+        style="max-width: 500px; width: 90%"
+      >
+        <h2 class="text-warning mb-3">DUNGEON CONCLUÍDA!</h2>
+        <div
+          id="modal-summary-content"
+          class="text-start mb-4"
+          style="max-height: 50vh; overflow-y: auto"
+        ></div>
+        <button id="btn-finish-dungeon" class="btn btn-warning btn-lg fw-bold">
+          Voltar para o Mapa
+        </button>
       </div>
     </div>
 

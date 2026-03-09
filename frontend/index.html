@@ -53,6 +53,7 @@
       }
 
       .mini-card {
+        position: relative;
         background-color: rgba(22, 33, 46, 0.9);
         border: 2px solid #5d6d7e;
         border-radius: 8 px;
@@ -312,6 +313,76 @@
       }
       .anim-level-up {
         animation: levelUpAnim 1.2s ease-in-out;
+      }
+      /* SOBREPOSIÇÃO DE LEVEL UP */
+      .level-up-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        z-index: 10;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.5s ease,
+          visibility 0.5s ease;
+        pointer-events: none;
+      }
+
+      /* TEXTO "LEVEL UP" */
+      .level-up-overlay .level-up-text {
+        font-family: "Georgia", serif;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #ffeb3b;
+        text-shadow:
+          0 0 10px #fff,
+          0 0 20px #ffeb3b;
+        margin-bottom: 0.5rem;
+      }
+
+      /* TEXTO DA PROGRESSÃO "5 > 6" */
+      .level-up-overlay .level-progression {
+        font-size: 1.2rem;
+        color: #fff;
+        font-weight: bold;
+      }
+
+      .mini-card.anim-level-up .level-up-overlay {
+        opacity: 1;
+        visibility: visible;
+        animation: levelUpTextPulse 2s ease-out;
+      }
+
+      /* ANIMAÇÃO DE PULSAÇÃO DO TEXTO */
+      @keyframes levelUpTextPulse {
+        0% {
+          transform: scale(0.8);
+          opacity: 0;
+        }
+        20% {
+          transform: scale(1.1);
+          opacity: 1;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        80% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0;
+        } /* Desaparece no final */
       }
     </style>
   </head>

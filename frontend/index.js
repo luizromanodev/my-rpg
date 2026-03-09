@@ -394,8 +394,20 @@ function updateUI() {
 
     // GERENCIADOR DE ANIMAÇÕES
     let extraClass = "";
+    let levelProgressionHtml = "";
+
     if (hero.justLeveledUp) {
       extraClass = "anim-level-up";
+
+      // === Cria o HTML da progressão de nível ===
+      const oldLevel = hero.oldLevelForAnim || (hero.level || 1) - 1;
+      levelProgressionHtml = `
+        <div class="level-up-overlay">
+          <div class="level-up-text">LEVEL UP!</div>
+          <div class="level-progression">${oldLevel} > ${hero.level}</div>
+        </div>
+      `;
+
       hero.justLeveledUp = false;
     } else if (hero.justDied) {
       extraClass = "anim-death";
@@ -413,11 +425,13 @@ function updateUI() {
     card.className = `mini-card text-light ${isDead && extraClass !== "anim-death" ? "opacity-50" : ""} ${isMyTurn ? "active-turn" : ""} ${extraClass}`;
 
     card.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center">
-        <strong class="${isDead ? "text-decoration-line-through text-secondary" : "text-info"}">
-          ${hero.name} <span class="text-light fs-6 opacity-75">Lv.${hero.level || 1}</span>
+      ${levelProgressionHtml}
+      
+      <div class="d-flex align-items-start">
+        <strong class="${isDead ? "text-decoration-line-through text-secondary" : "text-info"} me-2">
+          ${hero.name} <span class="text-light fs-6 opacity-75 ms-1">Lv.${hero.level || 1}</span>
         </strong>
-        <span class="badge bg-secondary">${hero.role}</span>
+        <span class="badge bg-secondary ms-auto mt-1">${hero.role}</span>
       </div>
       <div class="mb-1 text-center">
         ${getStarsHTML(hero.stars)}
@@ -844,24 +858,25 @@ function giveReward() {
 
     hero.exp.current += expReward;
 
-    if (hero.exp.current >= hero.exp.max) {
+    let leveledUpThisRoom = false;
+    let oldLevel = hero.level || 1; // Guarda o nível que ele estava antes de upar
+
+    // === while para processar todo o EXP acumulado! ===
+    while (hero.exp.current >= hero.exp.max) {
       hero.level = (hero.level || 1) + 1;
       hero.exp.current -= hero.exp.max;
       hero.exp.max = Math.floor(hero.exp.max * 1.5);
 
       // ATUALIZAÇÃO DOS STATUS
       hero.stats.max_hp += hero.growth.hp;
-      // Adiciona apenas a vida do crescimento na vida atual
       hero.stats.current_hp += hero.growth.hp;
-
       hero.stats.base_attack += hero.growth.attack;
       hero.stats.base_defense += hero.growth.defense;
       hero.stats.speed += hero.growth.speed;
 
-      expMessage += `<br>⬆️ <span class="text-info">${hero.name}</span> subiu para o Nível ${hero.level}!`;
+      leveledUpThisRoom = true;
 
-      hero.justLeveledUp = true;
-
+      // Guarda a evolução pra Tela Final (se ele upar 3x, guarda as 3x!)
       gameState.sessionRewards.levelUps.push({
         name: hero.name,
         level: hero.level,
@@ -869,6 +884,12 @@ function giveReward() {
         atkInc: hero.growth.attack,
         defInc: hero.growth.defense,
       });
+    }
+
+    if (leveledUpThisRoom) {
+      expMessage += `<br>⬆️ <span class="text-info">${hero.name}</span> alcançou o Nível ${hero.level}!`;
+      hero.justLeveledUp = true;
+      hero.oldLevelForAnim = oldLevel;
     }
   });
 

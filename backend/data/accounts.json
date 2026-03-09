@@ -141,17 +141,17 @@
           "role": "Dano Mágico",
           "description": "Uma lenda viva capaz de desintegrar exércitos.",
           "stars": 5,
-          "level": 1,
+          "level": 2,
           "exp": {
             "current": 0,
-            "max": 150
+            "max": 225
           },
           "stats": {
-            "max_hp": 200,
-            "current_hp": 200,
-            "base_attack": 45,
-            "base_defense": 15,
-            "speed": 18
+            "max_hp": 240,
+            "current_hp": 226,
+            "base_attack": 53,
+            "base_defense": 18,
+            "speed": 20
           },
           "growth": {
             "hp": 40,
@@ -162,9 +162,11 @@
           "inventory": [
             {
               "item_id": 1,
-              "quantity": 3
+              "quantity": 10
             }
-          ]
+          ],
+          "justTookDamage": false,
+          "justLeveledUp": false
         },
         {
           "id": "c2",
@@ -172,17 +174,17 @@
           "role": "Tanque",
           "description": "Protege o time com escudos pesados e muita vida.",
           "stars": 3,
-          "level": 1,
+          "level": 2,
           "exp": {
-            "current": 0,
-            "max": 100
+            "current": 50,
+            "max": 150
           },
           "stats": {
-            "max_hp": 150,
-            "current_hp": 150,
-            "base_attack": 15,
-            "base_defense": 20,
-            "speed": 8
+            "max_hp": 175,
+            "current_hp": 175,
+            "base_attack": 18,
+            "base_defense": 25,
+            "speed": 9
           },
           "growth": {
             "hp": 25,
@@ -195,7 +197,9 @@
               "item_id": 1,
               "quantity": 3
             }
-          ]
+          ],
+          "justTookDamage": false,
+          "justLeveledUp": false
         },
         {
           "id": "c4",
@@ -203,17 +207,17 @@
           "role": "Suporte",
           "description": "Mantém a equipe viva com feitiços de cura.",
           "stars": 3,
-          "level": 1,
+          "level": 2,
           "exp": {
-            "current": 0,
-            "max": 100
+            "current": 50,
+            "max": 150
           },
           "stats": {
-            "max_hp": 100,
-            "current_hp": 100,
-            "base_attack": 12,
-            "base_defense": 10,
-            "speed": 12
+            "max_hp": 120,
+            "current_hp": 98,
+            "base_attack": 14,
+            "base_defense": 12,
+            "speed": 13
           },
           "growth": {
             "hp": 20,
@@ -226,28 +230,30 @@
               "item_id": 1,
               "quantity": 3
             }
-          ]
+          ],
+          "justTookDamage": false,
+          "justLeveledUp": false
         }
       ],
       "dungeonState": {
         "currentMapId": "map_1",
         "currentDungeonIndex": 0,
-        "currentRoom": 1,
+        "currentRoom": 6,
         "enemiesLive": [
           {
-            "id": "m1",
-            "name": "Slime Verde A",
-            "level": 1,
+            "id": "m5",
+            "name": "Lobo Atroz A",
+            "level": 4,
             "stats": {
-              "max_hp": 30,
-              "current_hp": 30,
-              "base_attack": 8,
-              "base_defense": 2,
-              "speed": 5
+              "max_hp": 60,
+              "current_hp": 60,
+              "base_attack": 22,
+              "base_defense": 5,
+              "speed": 16
             },
             "rewards": {
-              "exp": 15,
-              "gold": 5,
+              "exp": 55,
+              "gold": 20,
               "drops": [
                 {
                   "item_id": 1,
@@ -258,57 +264,64 @@
             "battleId": "enemy_1"
           },
           {
-            "id": "m2",
-            "name": "Morcego Gigante B",
-            "level": 2,
+            "id": "m5",
+            "name": "Lobo Atroz B",
+            "level": 4,
             "stats": {
-              "max_hp": 25,
-              "current_hp": 25,
-              "base_attack": 12,
-              "base_defense": 1,
-              "speed": 15
+              "max_hp": 60,
+              "current_hp": 60,
+              "base_attack": 22,
+              "base_defense": 5,
+              "speed": 16
             },
             "rewards": {
-              "exp": 20,
-              "gold": 8,
+              "exp": 55,
+              "gold": 20,
               "drops": [
                 {
                   "item_id": 1,
-                  "chance": 0.2
+                  "chance": 0.3
                 }
               ]
             },
             "battleId": "enemy_2"
-          },
-          {
-            "id": "m2",
-            "name": "Morcego Gigante C",
-            "level": 2,
-            "stats": {
-              "max_hp": 25,
-              "current_hp": 25,
-              "base_attack": 12,
-              "base_defense": 1,
-              "speed": 15
-            },
-            "rewards": {
-              "exp": 20,
-              "gold": 8,
-              "drops": [
-                {
-                  "item_id": 1,
-                  "chance": 0.2
-                }
-              ]
-            },
-            "battleId": "enemy_3"
           }
         ],
         "sessionRewards": {
-          "gold": 0,
-          "exp": 0,
-          "drops": [],
-          "levelUps": []
+          "gold": 450,
+          "exp": 150,
+          "drops": [
+            "Poção de Vida",
+            "Poção de Vida",
+            "Poção de Vida",
+            "Poção de Vida",
+            "Poção de Vida",
+            "Poção de Vida",
+            "Poção de Vida"
+          ],
+          "levelUps": [
+            {
+              "name": "Arthur, o Escudeiro",
+              "level": 2,
+              "hpInc": 25,
+              "atkInc": 3,
+              "defInc": 5
+            },
+            {
+              "name": "Thalor, o Sacerdote",
+              "level": 2,
+              "hpInc": 20,
+              "atkInc": 2,
+              "defInc": 2
+            },
+            {
+              "name": "Lyra, a Tempestade",
+              "level": 2,
+              "hpInc": 40,
+              "atkInc": 8,
+              "defInc": 3
+            }
+          ]
         }
       }
     }

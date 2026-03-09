@@ -6,6 +6,7 @@ import { database, loadDatabase } from "./data/database.js";
 const btnAttack = document.getElementById("btn-attack");
 const btnPotion = document.getElementById("btn-potion");
 const btnSkill = document.getElementById("btn-skill");
+const btnFlee = document.getElementById("btn-flee");
 const battleLog = document.getElementById("battle-log");
 const uiGoldCounter = document.getElementById("gold-counter");
 
@@ -1219,3 +1220,23 @@ function showDungeonSummary() {
     ${levelUpsHtml}
   `;
 }
+
+// ==========================================
+// BOTÃO DE FUGIR DA BATALHA
+// ==========================================
+btnFlee.addEventListener("click", () => {
+  const confirmFlee = confirm(
+    "Tem certeza que deseja sair? Você perderá o progresso desta tentativa (mas manterá a XP que já ganhou).",
+  );
+
+  if (confirmFlee) {
+    ("");
+    // para o turno e a i.a do mob
+    clearTimeout(turnTimer);
+    // apaga o save
+    clearMidBattle();
+    showScreen("screen-map");
+    renderMapScreen();
+    console.log("O Jogador saiu da batalha");
+  }
+});

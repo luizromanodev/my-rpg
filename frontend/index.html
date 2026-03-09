@@ -206,6 +206,92 @@
       .anim-heal {
         animation: healAnim 0.5s ease-in-out;
       }
+      /* ========================================= */
+      /* ANIMAÇÕES DE ESTRELAS GACHA (SHINY & CHROMATIC) */
+      /* ========================================= */
+
+      .star-container {
+        display: inline-flex;
+        gap: 3px;
+        font-size: 1.1rem;
+        line-height: 1;
+        justify-content: center;
+      }
+
+      /* Estrelas de 1 a 4 (Dourado Pulsante) */
+      .star-shiny {
+        color: #ffe600;
+        text-shadow:
+          0 0 5px #ffaa00,
+          0 0 10px #ff6600;
+        animation: pulse-gold 1.5s infinite alternate ease-in-out;
+      }
+
+      @keyframes pulse-gold {
+        from {
+          text-shadow:
+            0 0 4px #ffaa00,
+            0 0 8px #ff6600;
+          transform: scale(1);
+        }
+        to {
+          text-shadow:
+            0 0 8px #ffff00,
+            0 0 15px #ff9900;
+          transform: scale(1.1);
+        }
+      }
+
+      /* 5 Estrelas! (Cromático / Metálico / Holográfico) */
+      .star-chromatic {
+        /* Cria o efeito arco-íris reflexivo */
+        background: linear-gradient(
+          124deg,
+          #ff2400,
+          #e81d1d,
+          #e8b71d,
+          #e3e81d,
+          #1de840,
+          #1ddde8,
+          #2b1de8,
+          #dd00f3,
+          #dd00f3
+        );
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent; /* Faz a cor do texto sumir para o fundo cromático aparecer */
+
+        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+        animation:
+          chromatic-flow 3s ease infinite,
+          pulse-chromatic 1s infinite alternate ease-in-out;
+      }
+
+      /* Faz as cores do arco-íris girarem */
+      @keyframes chromatic-flow {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Faz as estrelas pulsarem como se estivessem flutuando */
+      @keyframes pulse-chromatic {
+        from {
+          filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+          transform: scale(1) translateY(0);
+        }
+        to {
+          filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
+          transform: scale(1.15) translateY(-2px);
+        }
+      }
     </style>
   </head>
   <body>

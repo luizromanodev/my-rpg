@@ -124,14 +124,10 @@ async function handleAccount(action) {
       if (action === "login") {
         currentUser = username;
         myGroup.gold = data.saveData.gold;
-
-        // Carrega o progresso dos mapas salvos no banco
         myGroup.dungeonsCleared = data.saveData.dungeonsCleared || 0;
 
         if (data.saveData.team && data.saveData.team.length === 3) {
           myGroup.members = data.saveData.team;
-
-          // Vai para o Mapa Mundi! (Sem chamar updateUI() ou startRoom() aqui)
           setTimeout(() => {
             renderMapScreen();
             showScreen("screen-map");
@@ -152,7 +148,6 @@ async function handleAccount(action) {
 btnLogin.addEventListener("click", () => handleAccount("login"));
 btnRegister.addEventListener("click", () => handleAccount("register"));
 
-// Configura e inicia a batalha a partir da Taverna
 btnStartAdventure.addEventListener("click", async () => {
   if (myGroup.members.length !== 3) return;
 
@@ -209,8 +204,13 @@ function renderTavern() {
     card.style.cursor = "pointer";
     card.style.transition = "transform 0.2s, border-color 0.2s";
 
+    // Adicionado as estrelas e nível na Taverna!
     card.innerHTML = `
-      <h4 class="text-warning text-center mb-1">${char.name}</h4>
+      <h4 class="text-warning text-center mb-0">${char.name}</h4>
+      <div class="text-center mb-1 d-flex justify-content-center align-items-center gap-2">
+        ${getStarsHTML(char.stars)} 
+        <span class="text-light" style="font-size: 0.8rem;">Lv.${char.level || 1}</span>
+      </div>
       <div class="text-center mb-2">
         <span class="badge bg-info text-dark">${char.role}</span>
       </div>
@@ -293,7 +293,6 @@ function renderMapScreen() {
 
     if (isUnlocked) {
       card.addEventListener("click", () => {
-        // Correção de bug double click
         if (
           !document.getElementById("screen-map").classList.contains("d-none")
         ) {
@@ -325,7 +324,6 @@ function updateUI() {
     const isMyTurn =
       gameState.activeCharacter && gameState.activeCharacter.id === hero.id;
 
-    // GERENCIADOR DE ANIMAÇÕES
     let extraClass = "";
     if (hero.justDied) {
       extraClass = "anim-death";
@@ -340,13 +338,17 @@ function updateUI() {
 
     const card = document.createElement("div");
     card.id = `card-${hero.id}`;
-
     card.className = `mini-card text-light ${isDead && extraClass !== "anim-death" ? "opacity-50" : ""} ${isMyTurn ? "active-turn" : ""} ${extraClass}`;
 
     card.innerHTML = `
       <div class="d-flex justify-content-between align-items-center">
-        <strong class="${isDead ? "text-decoration-line-through text-secondary" : "text-info"}">${hero.name}</strong>
+        <strong class="${isDead ? "text-decoration-line-through text-secondary" : "text-info"}">
+          ${hero.name} <span class="text-light fs-6 opacity-75">Lv.${hero.level || 1}</span>
+        </strong>
         <span class="badge bg-secondary">${hero.role}</span>
+      </div>
+      <div class="mb-1 text-center">
+        ${getStarsHTML(hero.stars)}
       </div>
       <p class="mt-1 mb-1">HP: ${Math.max(0, hero.stats.current_hp)} / ${hero.stats.max_hp}</p>
       <div class="progress">
@@ -368,7 +370,6 @@ function updateUI() {
       gameState.selectedTarget &&
       gameState.selectedTarget.battleId === enemy.battleId;
 
-    // GERENCIADOR DE ANIMAÇÕES
     let extraClass = "";
     if (enemy.justDied) {
       extraClass = "anim-death";
@@ -380,7 +381,6 @@ function updateUI() {
 
     const card = document.createElement("div");
     card.id = `card-${enemy.battleId}`;
-
     card.className = `mini-card text-light ${isDead && extraClass !== "anim-death" ? "opacity-50" : ""} ${isMyTurn ? "active-turn" : ""} ${isTarget ? "border border-danger border-2" : ""} ${extraClass}`;
     card.style.cursor = isDead ? "default" : "crosshair";
 
@@ -432,37 +432,32 @@ function startRoom() {
   let enemyPool = [];
   let numEnemies = Math.floor(Math.random() * 3) + 1;
 
-  // REGRAS DE SALA
   if (room >= 1 && room <= 3) {
     enemyPool = currentMap.mobsNormal;
   } else if (room === 4 || (room >= 6 && room <= 9)) {
     enemyPool = currentMap.mobsElite;
   } else if (room === 5) {
     enemyPool = currentMap.miniBoss;
-    numEnemies = 1; // Mini Boss vem sozinho
+    numEnemies = 1;
   } else if (room === 10) {
     enemyPool = currentMap.boss;
-    numEnemies = 1; // Boss Final vem sozinho
+    numEnemies = 1;
   }
 
   const letras = ["A", "B", "C"];
 
   for (let i = 0; i < numEnemies; i++) {
     const enemyName = enemyPool[Math.floor(Math.random() * enemyPool.length)];
-
     const enemyData = database.enemies.find((e) => e.name === enemyName);
-
     const newEnemy = structuredClone(enemyData || database.enemies[0]);
 
     newEnemy.battleId = `enemy_${i + 1}`;
-
     newEnemy.name = enemyData ? enemyName : `[Falta Criar] ${enemyName}`;
 
     if (numEnemies > 1) {
       newEnemy.name = `${newEnemy.name} ${letras[i]}`;
     }
 
-    // Buff para aumento de dificuldade de mobs
     if (room === 4 || room >= 5) {
       newEnemy.stats.max_hp = Math.floor(newEnemy.stats.max_hp * 1.5);
       newEnemy.stats.current_hp = newEnemy.stats.max_hp;
@@ -474,7 +469,7 @@ function startRoom() {
 
   battleLog.innerHTML = "";
   logMessage(
-    `🏰 Explorando: ${currentMap.name} - Sala ${room}`,
+    `Explorando: ${currentMap.name} - Sala ${room}`,
     "text-info fw-bold",
   );
   logMessage(
@@ -535,7 +530,6 @@ function processNextTurn() {
     btnSkill.disabled = true;
     btnPotion.disabled = true;
 
-    // Garante que a IA não acumule turnos
     clearTimeout(turnTimer);
     turnTimer = setTimeout(() => {
       enemyTurnIA();
@@ -578,7 +572,6 @@ btnAttack.addEventListener("click", () => {
     return;
   }
 
-  // Não aceita alvos mortos
   if (gameState.selectedTarget.stats.current_hp <= 0) {
     logMessage(
       `Este monstro já foi derrotado! Escolha outro alvo.`,
@@ -596,11 +589,9 @@ btnAttack.addEventListener("click", () => {
   const attacker = gameState.activeCharacter;
   const defender = gameState.selectedTarget;
 
-  // 1. O Herói dá o pulo
   const attackerCard = document.getElementById(`card-${attacker.id}`);
   if (attackerCard) attackerCard.classList.add("anim-attack-hero");
 
-  // 2. Espera o pulo bater pra calcular o dano
   setTimeout(() => {
     if (!checkHit(attacker, defender)) {
       logMessage(
@@ -619,7 +610,6 @@ btnAttack.addEventListener("click", () => {
         `${attacker.name} atacou ${defender.name} e causou ${finalDamage} de dano!`,
       );
 
-      // AVISA A QUAL ANIMAÇÃO ELA DEVE TOCAR
       if (defender.stats.current_hp <= 0) {
         defender.justDied = true;
         logMessage(`${defender.name} foi derrotado!`, "text-success fw-bold");
@@ -652,7 +642,6 @@ function enemyTurnIA() {
 
   const target = aliveHeroes[Math.floor(Math.random() * aliveHeroes.length)];
 
-  // Monstro dá o pulo pra esquerda!
   const attackerCard = document.getElementById(`card-${attacker.battleId}`);
   if (attackerCard) attackerCard.classList.add("anim-attack-enemy");
 
@@ -674,7 +663,6 @@ function enemyTurnIA() {
         "text-danger",
       );
 
-      // AVISA A QUAL ANIMAÇÃO TOCAR
       if (target.stats.current_hp <= 0) {
         target.justDied = true;
         logMessage(`${target.name} caiu em combate!`, "text-danger fw-bold");
@@ -694,10 +682,76 @@ function enemyTurnIA() {
   }, 300);
 }
 
+// ==========================================
+// 9. RECOMPENSAS, DROPS E PROGRESSÃO
+// ==========================================
 function giveReward() {
   const goldReward = 30 * gameState.currentRoom;
+  const expReward = 45 * gameState.currentRoom;
+
   myGroup.gold += goldReward;
-  logMessage(`O grupo encontrou ${goldReward} moedas de ouro!`, "text-warning");
+  let expMessage = `💰 O grupo encontrou ${goldReward} ouro!<br>🌟 O grupo ganhou ${expReward} EXP!`;
+
+  // COLETAR DROPS
+  gameState.enemiesLive.forEach((enemy) => {
+    if (enemy.rewards && enemy.rewards.drops) {
+      enemy.rewards.drops.forEach((drop) => {
+        if (Math.random() <= drop.chance) {
+          const luckyHero = myGroup.members.find((h) => h.stats.current_hp > 0);
+          if (luckyHero) {
+            if (!luckyHero.inventory) luckyHero.inventory = []; // Segurança extra
+
+            const itemInBag = luckyHero.inventory.find(
+              (i) => i.item_id === drop.item_id,
+            );
+            if (itemInBag) itemInBag.quantity += 1;
+            else
+              luckyHero.inventory.push({ item_id: drop.item_id, quantity: 1 });
+
+            const itemReal = database.items.find((i) => i.id === drop.item_id);
+            const itemName = itemReal
+              ? itemReal.name
+              : `Item ID ${drop.item_id}`;
+
+            expMessage += `<br>Drop: O grupo recolheu 1x <span class="text-info">${itemName}</span>!`;
+          }
+        }
+      });
+    }
+  });
+
+  // SISTEMA DE EXPERIÊNCIA E LEVEL UP
+  const aliveHeroes = myGroup.members.filter((h) => h.stats.current_hp > 0);
+
+  aliveHeroes.forEach((hero) => {
+    if (!hero.exp) hero.exp = { current: 0, max: 100 };
+    if (!hero.growth) hero.growth = { hp: 15, attack: 2, defense: 2, speed: 1 };
+
+    hero.exp.current += expReward;
+
+    if (hero.exp.current >= hero.exp.max) {
+      hero.level = (hero.level || 1) + 1;
+      hero.exp.current -= hero.exp.max;
+      hero.exp.max = Math.floor(hero.exp.max * 1.5);
+
+      hero.stats.max_hp += hero.growth.hp;
+      hero.stats.current_hp = hero.stats.max_hp;
+      hero.stats.base_attack += hero.growth.attack;
+      hero.stats.base_defense += hero.growth.defense;
+      hero.stats.speed += hero.growth.speed;
+
+      expMessage += `<br>⬆️ <span class="text-info">${hero.name}</span> subiu para o Nível ${hero.level}!`;
+      hero.justHealed = true;
+    }
+  });
+
+  // Escreve as recompensas no log
+  const p = document.createElement("p");
+  p.className = `m-0 text-warning fw-bold mb-2`;
+  p.innerHTML = expMessage;
+  battleLog.appendChild(p);
+  battleLog.scrollTop = battleLog.scrollHeight;
+
   updateUI();
 }
 
@@ -731,7 +785,6 @@ function checkBattleEnd() {
       btnSkill.disabled = true;
       btnPotion.disabled = true;
 
-      // Libera o próximo mapa!
       myGroup.dungeonsCleared++;
 
       fetch("http://localhost:3000/api/save-progress", {
@@ -750,7 +803,7 @@ function checkBattleEnd() {
       setTimeout(() => {
         showScreen("screen-map");
         renderMapScreen();
-      }, 3000);
+      }, 4000);
     } else {
       gameState.currentRoom++;
       logMessage(
@@ -762,7 +815,7 @@ function checkBattleEnd() {
       clearTimeout(turnTimer);
       turnTimer = setTimeout(() => {
         startRoom();
-      }, 2000);
+      }, 2500);
     }
     return true;
   }
@@ -774,21 +827,36 @@ function checkBattleEnd() {
 // ==========================================
 btnPotion.addEventListener("click", () => {
   const hero = gameState.activeCharacter;
+
+  if (!hero.inventory) hero.inventory = [];
+  const potion = hero.inventory.find((item) => item.item_id === 1);
+
+  if (!potion || potion.quantity <= 0) {
+    logMessage(
+      `⚠️ ${hero.name} não tem Poções de Vida no inventário!`,
+      "text-warning",
+    );
+    return;
+  }
+
   btnAttack.disabled = true;
   btnSkill.disabled = true;
   btnPotion.disabled = true;
 
-  const healAmount = 50;
+  potion.quantity -= 1;
+  const itemData = database.items.find((i) => i.id === 1);
+  const healAmount = itemData ? itemData.value : 50;
+
   hero.stats.current_hp = Math.min(
     hero.stats.current_hp + healAmount,
     hero.stats.max_hp,
   );
+
   logMessage(
-    `${hero.name} bebeu uma Poção e recuperou ${healAmount} HP!`,
+    `🧪 ${hero.name} bebeu uma Poção! Restam: ${potion.quantity}`,
     "text-success fw-bold",
   );
-
-  hero.justHealed = true; // Acende a carta em verde!
+  hero.justHealed = true;
 
   updateUI();
   clearTimeout(turnTimer);
@@ -803,11 +871,9 @@ btnSkill.addEventListener("click", () => {
   btnSkill.disabled = true;
   btnPotion.disabled = true;
 
-  // Animação da Magia
   const heroCard = document.getElementById(`card-${hero.id}`);
   if (heroCard) heroCard.classList.add("anim-skill-use");
 
-  // 2. Espera a animação terminar para soltar o poder
   setTimeout(() => {
     if (hero.role === "Tanque") {
       hero.stats.base_defense += 5;
@@ -823,7 +889,7 @@ btnSkill.addEventListener("click", () => {
       const aliveHeroes = myGroup.members.filter((h) => h.stats.current_hp > 0);
       aliveHeroes.forEach((h) => {
         h.stats.current_hp = Math.min(h.stats.current_hp + 30, h.stats.max_hp);
-        h.justHealed = true; // Faz TODOS os heróis brilharem em verde
+        h.justHealed = true;
       });
     } else {
       logMessage(
@@ -839,10 +905,8 @@ btnSkill.addEventListener("click", () => {
         enemy.stats.current_hp -= areaDamage;
         logMessage(`⚔️ ${enemy.name} sofreu ${areaDamage} de dano mágico!`);
 
-        // Tremor em área ou Morte em área!
         if (enemy.stats.current_hp <= 0) {
           enemy.justDied = true;
-
           if (
             gameState.selectedTarget &&
             gameState.selectedTarget.battleId === enemy.battleId
@@ -855,7 +919,7 @@ btnSkill.addEventListener("click", () => {
       });
     }
 
-    updateUI(); // Executa todos os tremores, mortes e curas de uma vez
+    updateUI();
 
     if (!checkBattleEnd()) {
       clearTimeout(turnTimer);
@@ -865,3 +929,21 @@ btnSkill.addEventListener("click", () => {
     }
   }, 600);
 });
+
+// ==========================================
+// 11. SISTEMA DE UI GACHA
+// ==========================================
+function getStarsHTML(starCount) {
+  if (!starCount) starCount = 1;
+
+  let html = '<div class="star-container">';
+
+  const starClass = starCount >= 5 ? "star-chromatic" : "star-shiny";
+
+  for (let i = 0; i < starCount; i++) {
+    html += `<span class="${starClass}">★</span>`;
+  }
+
+  html += "</div>";
+  return html;
+}

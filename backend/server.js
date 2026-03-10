@@ -42,7 +42,7 @@ app.post("/api/register", (req, res) => {
 
   accounts[username] = {
     password: password,
-    saveData: { gold: 0, dungeonsCleared: 0, team: [] },
+    saveData: { gold: 0, dungeonsCleared: 0, team: [], inventory: [] },
   };
 
   fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
@@ -79,13 +79,14 @@ app.post("/api/save-team", (req, res) => {
 
 // --- SALVAR PROGRESSO DA DUNGEON ---
 app.post("/api/save-progress", (req, res) => {
-  const { username, dungeonsCleared, gold } = req.body;
+  const { username, dungeonsCleared, gold, inventory } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
   if (accounts[username]) {
-    // Atualia ouro e dungeons
+    // Atualiza ouro e dungeons
     accounts[username].saveData.dungeonsCleared = dungeonsCleared;
     accounts[username].saveData.gold = gold;
+    if (inventory) accounts[username].saveData.inventory = inventory;
 
     fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
     res
@@ -98,12 +99,13 @@ app.post("/api/save-progress", (req, res) => {
 
 // --- SALVAR BATALHA EM TEMPO REAL ---
 app.post("/api/save-battle", (req, res) => {
-  const { username, team, dungeonState } = req.body;
+  const { username, team, dungeonState, inventory } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
   if (accounts[username]) {
     accounts[username].saveData.team = team;
     accounts[username].saveData.dungeonState = dungeonState;
+    if (inventory) accounts[username].saveData.inventory = inventory;
 
     fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
     res.status(200).json({ message: "Batalha salva em tempo real!" });

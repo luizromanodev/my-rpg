@@ -3,37 +3,108 @@
     "id": 1,
     "name": "Poção de Vida",
     "type": "consumable",
-    "value": 50
+    "rarity": "comum",
+    "value": 50,
+    "description": "Restaura 50 de HP.",
+    "allowedClasses": ["Todas"]
   },
   {
     "id": 2,
-    "name": "Poção de Mana",
+    "name": "Poção Maior de Vida",
     "type": "consumable",
-    "value": 30
+    "rarity": "incomum",
+    "value": 150,
+    "description": "Restaura 150 de HP.",
+    "allowedClasses": ["Todas"]
   },
   {
-    "id": 101,
-    "name": "Espada Longa",
+    "id": 3,
+    "name": "Espada Longa de Ferro",
     "type": "weapon",
-    "attack": 12
+    "rarity": "incomum",
+    "stats": { "attack": 10, "speed": 0 },
+    "description": "Uma espada pesada. +10 ATQ",
+    "allowedClasses": ["Guerreiro", "Tanque"]
   },
   {
-    "id": 102,
-    "name": "Cajado de Aprendiz",
+    "id": 4,
+    "name": "Cajado de Carvalho",
     "type": "weapon",
-    "attack": 3,
-    "magic": 10
+    "rarity": "incomum",
+    "stats": { "attack": 8, "speed": 2 },
+    "description": "Foco mágico simples. +8 ATQ, +2 VEL",
+    "allowedClasses": ["Mago", "Curandeiro", "Suporte"]
   },
   {
-    "id": 301,
-    "name": "Cota de Malha",
-    "type": "armor",
-    "defense": 15
+    "id": 5,
+    "name": "Adagas Gêmeas",
+    "type": "weapon",
+    "rarity": "incomum",
+    "stats": { "attack": 6, "speed": 10 },
+    "description": "Lâminas rápidas e mortais. +6 ATQ, +10 VEL",
+    "allowedClasses": ["Assassino", "Arqueiro"]
   },
   {
-    "id": 302,
-    "name": "Manto de Tecido",
+    "id": 6,
+    "name": "Cota de Malha Ferrujada",
     "type": "armor",
-    "defense": 3
+    "rarity": "comum",
+    "stats": { "defense": 5, "max_hp": 20 },
+    "description": "Proteção básica. +5 DEF, +20 HP",
+    "allowedClasses": ["Todas"]
+  },
+  {
+    "id": 7,
+    "name": "Manto do Rei Goblin",
+    "type": "armor",
+    "rarity": "raro",
+    "stats": { "defense": 15, "speed": 5 },
+    "description": "Drop garantido do Chefe. +15 DEF, +5 VEL",
+    "allowedClasses": ["Mago", "Suporte", "Curandeiro", "Assassino"]
+  },
+  {
+    "id": 8,
+    "name": "Montante Quebra-Ossos",
+    "type": "weapon",
+    "rarity": "raro",
+    "stats": { "attack": 25, "speed": -5 },
+    "description": "Arma dos Cavaleiros Caídos. +25 ATQ, -5 VEL",
+    "allowedClasses": ["Guerreiro", "Tanque"]
+  },
+  {
+    "id": 9,
+    "name": "Grimório Espectral",
+    "type": "weapon",
+    "rarity": "raro",
+    "stats": { "attack": 20, "max_hp": -10 },
+    "description": "Poder à custa de vida. +20 ATQ, -10 HP",
+    "allowedClasses": ["Mago", "Curandeiro"]
+  },
+  {
+    "id": 10,
+    "name": "Armadura de Obsidiana",
+    "type": "armor",
+    "rarity": "épico",
+    "stats": { "defense": 35, "max_hp": 100 },
+    "description": "Forjada no coração da Cidade Soterrada. +35 DEF, +100 HP",
+    "allowedClasses": ["Tanque", "Guerreiro"]
+  },
+  {
+    "id": 11,
+    "name": "Arco de Gelo Verdadeiro",
+    "type": "weapon",
+    "rarity": "épico",
+    "stats": { "attack": 40, "speed": 20 },
+    "description": "Sua flecha congela o ar. +40 ATQ, +20 VEL",
+    "allowedClasses": ["Arqueiro", "Assassino"]
+  },
+  {
+    "id": 12,
+    "name": "Coroa do Inverno Eterno",
+    "type": "armor",
+    "rarity": "lendário",
+    "stats": { "defense": 50, "attack": 25, "max_hp": 150 },
+    "description": "O poder absoluto do Pico Congelado. +50 DEF, +25 ATQ, +150 HP",
+    "allowedClasses": ["Todas"]
   }
 ]

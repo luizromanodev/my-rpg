@@ -441,12 +441,23 @@
       </div>
 
       <div id="screen-map" class="d-none mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2"
+        >
           <h2 class="text-warning text-shadow m-0">Mapa Mundi</h2>
-          <div
-            class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
-          >
-            Ouro: <span id="map-gold-counter">0</span>
+          <div class="d-flex gap-2 align-items-center">
+            <button
+              id="btn-open-inventory"
+              class="btn btn-outline-info fw-bold shadow-sm"
+            >
+              Inventário
+            </button>
+
+            <div
+              class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
+            >
+              Ouro: <span id="map-gold-counter">0</span>
+            </div>
           </div>
         </div>
 
@@ -620,6 +631,49 @@
         <button id="btn-finish-dungeon" class="btn btn-warning btn-lg fw-bold">
           Voltar para o Mapa
         </button>
+      </div>
+    </div>
+    <div
+      id="modal-inventory"
+      class="d-none"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <div
+        class="card bg-dark border-secondary p-3 text-light shadow-lg"
+        style="
+          max-width: 700px;
+          width: 95%;
+          max-height: 85vh;
+          display: flex;
+          flex-direction: column;
+          position: relative;
+        "
+      >
+        <button
+          id="btn-close-inventory"
+          class="btn btn-sm btn-danger"
+          style="position: absolute; top: 10px; right: 10px; z-index: 10"
+        >
+          X
+        </button>
+        <h3 class="text-warning text-center mb-3 mt-2">Sua Mochila</h3>
+
+        <div
+          id="inventory-content"
+          class="row g-2 overflow-auto"
+          style="flex-grow: 1; padding-right: 5px"
+        ></div>
       </div>
     </div>
 

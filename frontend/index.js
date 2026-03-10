@@ -37,7 +37,13 @@ const mapGoldCounter = document.getElementById("map-gold-counter");
 // 2. ESTADO DO JOGO E SAVE
 // ==========================================
 let currentUser = null;
-let myGroup = { name: "Grupo do Herói", gold: 0, members: [] };
+let playerInventory = [];
+let myGroup = {
+  name: "Grupo do Herói",
+  gold: 0,
+  members: [],
+  dungeonsCleared: 0,
+};
 let gameState = {
   enemiesLive: [],
   turnQueue: [],
@@ -72,6 +78,7 @@ function saveMidBattle() {
       username: currentUser,
       team: myGroup.members,
       dungeonState: stateToSave,
+      inventory: playerInventory,
     }),
   });
 }
@@ -133,6 +140,8 @@ async function handleAccount(action) {
         currentUser = username;
         myGroup.gold = data.saveData.gold;
         myGroup.dungeonsCleared = data.saveData.dungeonsCleared || 0;
+
+        playerInventory = data.saveData.inventory || [];
 
         if (data.saveData.team && data.saveData.team.length === 3) {
           myGroup.members = data.saveData.team;
@@ -821,29 +830,36 @@ function giveReward() {
   gameState.sessionRewards.exp += expReward;
 
   // COLETAR DROPS
+  const isMiniBossRoom = gameState.currentRoom === 5;
+  const isBossRoom = gameState.currentRoom === 10;
+
   gameState.enemiesLive.forEach((enemy) => {
     if (enemy.rewards && enemy.rewards.drops) {
       enemy.rewards.drops.forEach((drop) => {
-        if (Math.random() <= drop.chance) {
-          const luckyHero = myGroup.members.find((h) => h.stats.current_hp > 0);
-          if (luckyHero) {
-            if (!luckyHero.inventory) luckyHero.inventory = [];
+        // Se for boss, drop raro (chance menor que 20%) é 100% garantido!
+        let finalChance = drop.chance;
+        if ((isMiniBossRoom || isBossRoom) && drop.chance <= 0.2) {
+          finalChance = 1.0; // 100% de chance!
+        }
 
-            const itemInBag = luckyHero.inventory.find(
-              (i) => i.item_id === drop.item_id,
-            );
-            if (itemInBag) itemInBag.quantity += 1;
-            else
-              luckyHero.inventory.push({ item_id: drop.item_id, quantity: 1 });
-
-            const itemReal = database.items.find((i) => i.id === drop.item_id);
-            const itemName = itemReal
-              ? itemReal.name
-              : `Item ID ${drop.item_id}`;
-
-            expMessage += `<br>Drop: O grupo recolheu 1x <span class="text-info">${itemName}</span>!`;
-            gameState.sessionRewards.drops.push(itemName);
+        if (Math.random() <= finalChance) {
+          // Salva no INVENTÁRIO DO GRUPO
+          const itemInBag = playerInventory.find(
+            (i) => i.item_id === drop.item_id,
+          );
+          if (itemInBag) {
+            itemInBag.quantity += 1;
+          } else {
+            playerInventory.push({ item_id: drop.item_id, quantity: 1 });
           }
+
+          const itemReal = database.items.find((i) => i.id === drop.item_id);
+          const itemName = itemReal ? itemReal.name : `Item ID ${drop.item_id}`;
+          const rarityColor =
+            finalChance === 1.0 ? "text-warning" : "text-info"; // Destaca o drop do chefe
+
+          expMessage += `<br>Drop: O grupo guardou 1x <span class="${rarityColor} fw-bold">${itemName}</span>!`;
+          gameState.sessionRewards.drops.push(itemName);
         }
       });
     }
@@ -949,6 +965,7 @@ function checkBattleEnd() {
           username: currentUser,
           dungeonsCleared: myGroup.dungeonsCleared,
           gold: myGroup.gold,
+          inventory: playerInventory,
         }),
       })
         .then((res) => res.json())
@@ -1002,14 +1019,10 @@ function checkBattleEnd() {
 btnPotion.addEventListener("click", () => {
   const hero = gameState.activeCharacter;
 
-  if (!hero.inventory) hero.inventory = [];
-  const potion = hero.inventory.find((item) => item.item_id === 1);
+  const potion = playerInventory.find((item) => item.item_id === 1);
 
   if (!potion || potion.quantity <= 0) {
-    logMessage(
-      ` ${hero.name} não tem Poções de Vida no inventário!`,
-      "text-warning",
-    );
+    logMessage(`O grupo não tem Poções de Vida na mochila!`, "text-warning");
     return;
   }
 
@@ -1135,10 +1148,21 @@ document.getElementById("btn-close-hero").addEventListener("click", () => {
 });
 
 function showHeroDetails(hero) {
+  // Garante que o herói tem equipamentos
+  if (!hero.equipment) hero.equipment = { weapon: null, armor: null };
+
   modalHero.classList.remove("d-none");
 
+  // Busca os dados do equipamento atual no database
+  const weapon = hero.equipment.weapon
+    ? database.items.find((i) => i.id === hero.equipment.weapon)
+    : null;
+  const armor = hero.equipment.armor
+    ? database.items.find((i) => i.id === hero.equipment.armor)
+    : null;
+
   modalHeroContent.innerHTML = `
-  <h3 class="text-info text-center">${hero.name}</h3>
+    <h3 class="text-info text-center">${hero.name}</h3>
     <div class="text-center text-warning mb-2">${getStarsHTML(hero.stars)}</div>
     <div class="text-center mb-3"><span class="badge bg-secondary">Nível ${hero.level || 1}</span></div>
     
@@ -1150,11 +1174,17 @@ function showHeroDetails(hero) {
       <li>Velocidade: ${hero.stats.speed}</li>
     </ul>
 
-    <h5 class="text-light border-bottom border-secondary pb-1 mt-3">Equipamentos (Em Breve)</h5>
-    <ul class="list-unstyled text-secondary">
-      <li>Arma: Nenhuma</li>
-      <li>Armadura: Nenhuma</li>
-    </ul>
+    <h5 class="text-light border-bottom border-secondary pb-1 mt-3">Equipamentos</h5>
+    <div class="d-grid gap-2 mb-3">
+      <button class="btn btn-outline-light d-flex justify-content-between align-items-center" onclick="openEquipSelect('${hero.id}', 'weapon')">
+        <span>Arma: <strong class="text-info">${weapon ? weapon.name : "Nenhuma"}</strong></span>
+        <span class="badge bg-primary">Trocar</span>
+      </button>
+      <button class="btn btn-outline-light d-flex justify-content-between align-items-center" onclick="openEquipSelect('${hero.id}', 'armor')">
+        <span>Armadura: <strong class="text-info">${armor ? armor.name : "Nenhuma"}</strong></span>
+        <span class="badge bg-primary">Trocar</span>
+      </button>
+    </div>
     
     <div class="progress mt-3 bg-dark border border-secondary" style="height: 10px;">
       <div class="progress-bar bg-info" style="width: ${(hero.exp.current / hero.exp.max) * 100}%"></div>
@@ -1261,3 +1291,204 @@ btnFlee.addEventListener("click", () => {
     console.log("O Jogador saiu da batalha");
   }
 });
+
+// ==========================================
+// 12. INVENTÁRIO
+// ==========================================
+const modalInventory = document.getElementById("modal-inventory");
+const inventoryContent = document.getElementById("inventory-content");
+const btnOpenInventory = document.getElementById("btn-open-inventory");
+const btnCloseInventory = document.getElementById("btn-close-inventory");
+
+// Fechar Inventario
+btnCloseInventory.addEventListener("click", () => {
+  modalInventory.classList.add("d-none");
+});
+
+// Abrir inventario e desenhar itens
+btnOpenInventory.addEventListener("click", () => {
+  modalInventory.classList.remove("d-none");
+  inventoryContent.innerHTML = "";
+
+  if (playerInventory.length === 0) {
+    inventoryContent.innerHTML = `<p class="text-center text-secondary w-100 mt-4">Sua mochila está vazia!</p>`;
+    return;
+  }
+
+  playerInventory.forEach((bagItem) => {
+    // Busca os poderes do item
+    const itemData = database.items.find((i) => i.id === bagItem.item_id);
+    if (!itemData) return;
+
+    // Cor da borda por raridade
+    let rarityBorder = "border-secondary";
+    let rarityText = "text-light";
+    if (itemData.rarity === "incomum") {
+      rarityBorder = "border-success";
+      rarityText = "text-success";
+    }
+    if (itemData.rarity === "raro") {
+      rarityBorder = "border-info";
+      rarityText = "text-info";
+    }
+    if (itemData.rarity === "épico") {
+      rarityBorder = "border-primary";
+      rarityText = "text-primary";
+    }
+    if (itemData.rarity === "lendário") {
+      rarityBorder = "border-warning";
+      rarityText = "text-warning";
+    }
+
+    // Define o ícone pelo tipo
+    let icon = "📦";
+    if (itemData.type === "weapon") icon = "🗡️";
+    if (itemData.type === "armor") icon = "🛡️";
+    if (itemData.type === "consumable") icon = "🧪";
+
+    const col = document.createElement("div");
+    col.className = "col-md-6"; // Dois itens por linha no pc e um no celular
+
+    col.innerHTML = `
+    <div class="card bg-dark p-2 h-100 ${rarityBorder}" style="border-width: 2px;">
+        <div class="d-flex justify-content-between align-items-start">
+          <strong class="${rarityText}">${icon} ${itemData.name}</strong>
+          <span class="badge bg-secondary fs-6">x${bagItem.quantity}</span>
+        </div>
+        <small class="text-secondary d-block mb-1 text-capitalize">${itemData.type} • ${itemData.rarity}</small>
+        <p class="mb-0 text-light" style="font-size: 0.85rem;">${itemData.description}</p>
+        ${itemData.allowedClasses ? `<small class="text-warning d-block mt-1" style="font-size: 0.75rem;">Restrição: ${itemData.allowedClasses.join(", ")}</small>` : ""}
+      </div>
+    `;
+
+    inventoryContent.appendChild(col);
+  });
+});
+
+// ==========================================
+// 13. SISTEMA DE EQUIPAMENTOS
+// ==========================================
+// Abre a lista de itens compativeis
+window.openEquipSelect = function (heroId, type) {
+  const hero = myGroup.members.find((h) => h.id === heroId);
+
+  // Filtra o inventario
+  const availableItems = playerInventory.filter((bagItem) => {
+    const itemData = database.items.find((i) => i.id === bagItem.item_id);
+    if (!itemData || itemData.type !== type) return false;
+
+    // Verifica retrição de classe
+    if (
+      itemData.allowedClasses.includes("Todas") ||
+      itemData.allowedClasses.includes(hero.role)
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  // Cria lista de botões
+  let listHtml = availableItems
+    .map((bagItem) => {
+      const itemData = database.items.find((i) => i.id === bagItem.item_id);
+      let statsStr = "";
+      if (itemData.stats.attack) statsStr += `+${itemData.stats.attack} ATQ | `;
+      if (itemData.stats.defense)
+        statsStr += `+${itemData.stats.defense} DEF | `;
+      if (itemData.stats.max_hp) statsStr += `+${itemData.stats.max_hp} HP | `;
+      if (itemData.stats.speed) statsStr += `+${itemData.stats.speed} VEL`;
+
+      return `
+    <button class="btn btn-dark border-secondary w-100 text-start mb-2" onclick="equipItem('${hero.id}', '${type}', ${itemData.id})">
+        <strong class="text-info">${itemData.name}</strong> <span class="badge bg-secondary">x${bagItem.quantity}</span><br>
+        <small class="text-success">${statsStr}</small>
+      </button>
+    `;
+    })
+    .join("");
+
+  if (availableItems.length === 0)
+    listHtml = `<p class="text-center text-secondary mt-3">Nenhum equipamento compatível na mochila.</p>`;
+
+  const unequipBtn = hero.equipment[type]
+    ? `<button class="btn btn-danger w-100 mb-3 fw-bold" onclick="unequipItem('${hero.id}', '${type}')">Remover Equipamento Atual</button>`
+    : "";
+
+  modalHeroContent.innerHTML = `
+    <h4 class="text-warning text-center mb-3">Escolher ${type === "weapon" ? "Arma 🗡️" : "Armadura 🛡️"}</h4>
+    ${unequipBtn}
+    <div style="max-height: 40vh; overflow-y: auto; padding-right: 5px;">
+      ${listHtml}
+    </div>
+    <button class="btn btn-secondary w-100 mt-3" onclick="showHeroDetailsById('${hero.id}')">Voltar</button>
+  `;
+};
+
+// Retorna para tela principal do heroi
+window.showHeroDetailsById = function (heroId) {
+  const hero = myGroup.members.find((h) => h.id === heroId);
+  showHeroDetails(hero);
+};
+
+// Logica de vestir armadura
+window.equipItem = function (heroId, type, itemId) {
+  const hero = myGroup.members.find((h) => h.id === heroId);
+
+  // Se ja tem algo equipado, devolve pra mochila
+  if (hero.equipment[type]) unequipItem(heroId, type, false);
+
+  // Remove o novo item da mochila
+  const bagIndex = playerInventory.findIndex((i) => i.item_id === itemId);
+  if (bagIndex === -1) return;
+  playerInventory[bagIndex].quantity -= 1;
+  if (playerInventory[bagIndex].quantity <= 0)
+    playerInventory.splice(bagIndex, 1);
+
+  // Equipa no heroi
+  hero.equipment[type] = itemId;
+
+  // Soma os atributos permanentes
+  const itemData = database.items.find((i) => i.id === itemId);
+  if (itemData.stats.attack) hero.stats.base_attack += itemData.stats.attack;
+  if (itemData.stats.defense) hero.stats.base_defense += itemData.stats.defense;
+  if (itemData.stats.speed) hero.stats.speed += itemData.stats.speed;
+  if (itemData.stats.max_hp) {
+    hero.stats.max_hp += itemData.stats.max_hp;
+    hero.stats.current_hp += itemData.stats.max_hp;
+  }
+
+  // Atualiza a tela
+  updateUI();
+  showHeroDetails(hero);
+};
+
+// Logica de tirar armadura
+window.unequipItem = function (heroId, type, render = true) {
+  const hero = myGroup.members.find((h) => h.id === heroId);
+  if (!hero.equipment[type]) return;
+
+  const itemId = hero.equipment[type];
+  const itemData = database.items.find((i) => i.id === itemId);
+  // Devolve pra mochila
+  const bagItem = playerInventory.find((i) => i.item_id === itemId);
+  if (bagItem) bagItem.quantity += 1;
+  else playerInventory.push({ item_id: itemId, quantity: 1 });
+
+  // Subtrai os atributos do heroi
+  if (itemData.stats.attack) hero.stats.base_attack -= itemData.stats.attack;
+  if (itemData.stats.defense) hero.stats.base_defense -= itemData.stats.defense;
+  if (itemData.stats.speed) hero.stats.speed -= itemData.stats.speed;
+  if (itemData.stats.max_hp) {
+    hero.stats.max_hp -= itemData.stats.max_hp;
+    hero.stats.current_hp = Math.min(hero.stats.current_hp, hero.stats.max_hp); // Ajusta a vida pra não bugar
+  }
+
+  // Esvazia o slot
+  hero.equipment[type] = null;
+
+  // Atualiza a tela
+  if (render) {
+    updateUI();
+    showHeroDetails(hero);
+  }
+};

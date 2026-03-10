@@ -388,23 +388,25 @@
   <body>
     <div class="container">
       <div
-        id="screen-account-select"
+        id="screen-slot-select"
         class="row justify-content-center mt-5 text-center d-none"
       >
-        <div class="col-md-8">
+        <div class="col-md-10">
           <h2 class="text-warning mb-4">
-            <i class="bi bi-controller"></i> Escolha sua Conta
+            <i class="bi bi-hdd-network"></i> Selecione um Slot de Personagem
           </h2>
           <div
-            id="account-list"
+            id="slot-list"
             class="row justify-content-center gap-3 mb-4"
           ></div>
-          <button id="btn-show-login" class="btn btn-outline-success fw-bold">
-            <i class="bi bi-person-plus-fill"></i> Adicionar Nova Conta
+          <button
+            onclick="location.reload()"
+            class="btn btn-outline-secondary fw-bold"
+          >
+            <i class="bi bi-box-arrow-left"></i> Trocar de Conta
           </button>
         </div>
       </div>
-
       <div id="screen-home" class="d-none mt-4">
         <div
           class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2"
@@ -467,15 +469,34 @@
         </div>
       </div>
 
-      <div id="screen-login" class="row justify-content-center mt-5 d-none">
+      <div id="screen-login" class="row justify-content-center mt-5">
         <div class="col-md-5">
           <div class="card p-4 shadow-lg text-center">
-            <h2 class="text-warning mb-4">Bem-vindo ao RPG</h2>
+            <h2 class="text-warning mb-4">
+              <i class="bi bi-shield-lock"></i> Entrar no Jogo
+            </h2>
+
+            <button
+              class="btn btn-outline-light fw-bold w-100 mb-4 d-flex align-items-center justify-content-center gap-2"
+              onclick="alert('Integração com Google em breve!')"
+            >
+              <i class="bi bi-google text-danger fs-5"></i> Continuar com o
+              Google
+            </button>
+
+            <div class="d-flex align-items-center mb-4">
+              <hr class="flex-grow-1 border-secondary m-0" />
+              <span class="mx-3 text-secondary" style="font-size: 0.8rem"
+                >OU USE E-MAIL</span
+              >
+              <hr class="flex-grow-1 border-secondary m-0" />
+            </div>
+
             <input
               type="text"
               id="input-username"
               class="form-control mb-3"
-              placeholder="Nome de Usuário"
+              placeholder="Nome de Usuário ou E-mail"
             />
             <input
               type="password"

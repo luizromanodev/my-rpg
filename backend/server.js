@@ -23,6 +23,20 @@ const readJsonFile = (fileName, res) => {
 // Caminho do banco de contas
 const accountsPath = path.join(__dirname, "data", "accounts.json");
 
+// --- FUNÇÃO AUXILIAR PARA GARANTIR QUE O SLOT EXISTA ---
+function ensureSlotExists(account, index) {
+  if (!account.slots) account.slots = [null, null, null]; // Atualiza contas antigas
+  if (!account.slots[index]) {
+    account.slots[index] = {
+      gold: 0,
+      dungeonsCleared: 0,
+      team: [],
+      inventory: [],
+      dungeonState: null,
+    };
+  }
+}
+
 // --- ROTAS DO JOGO ---
 app.get("/", (req, res) => res.send("API do RPG está funcionando!"));
 
@@ -40,9 +54,10 @@ app.post("/api/register", (req, res) => {
     return res.status(400).json({ error: "Usuário já existe" });
   }
 
+  // A conta tem 3 Slots Vazios
   accounts[username] = {
     password: password,
-    saveData: { gold: 0, dungeonsCleared: 0, team: [], inventory: [] },
+    slots: [null, null, null],
   };
 
   fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
@@ -54,22 +69,29 @@ app.post("/api/login", (req, res) => {
   const accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
   if (accounts[username] && accounts[username].password === password) {
+    //Se for uma conta antiga, ela ganhe a estrutura de slots
+    if (!accounts[username].slots)
+      accounts[username].slots = [null, null, null];
+
     res.status(200).json({
       message: "Login bem-sucedido",
-      saveData: accounts[username].saveData,
+      // slots enviados para o frontend desenhar
+      saveData: { slots: accounts[username].slots },
     });
   } else {
     res.status(401).json({ error: "Usuario ou senha inválidos" });
   }
 });
 
-// Rota de salvar o  time
+// --- SALVAR O TIME NO SLOT ESPECÍFICO ---
 app.post("/api/save-team", (req, res) => {
-  const { username, team } = req.body;
+  const { username, slotIndex, team } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
   if (accounts[username]) {
-    accounts[username].saveData.team = team;
+    ensureSlotExists(accounts[username], slotIndex);
+    accounts[username].slots[slotIndex].team = team;
+
     fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
     res.status(200).json({ message: "Time salvo com sucesso" });
   } else {
@@ -77,16 +99,16 @@ app.post("/api/save-team", (req, res) => {
   }
 });
 
-// --- SALVAR PROGRESSO DA DUNGEON ---
+// --- SALVAR PROGRESSO DA DUNGEON NO SLOT ESPECÍFICO ---
 app.post("/api/save-progress", (req, res) => {
-  const { username, dungeonsCleared, gold, inventory } = req.body;
+  const { username, slotIndex, dungeonsCleared, gold, inventory } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
   if (accounts[username]) {
-    // Atualiza ouro e dungeons
-    accounts[username].saveData.dungeonsCleared = dungeonsCleared;
-    accounts[username].saveData.gold = gold;
-    if (inventory) accounts[username].saveData.inventory = inventory;
+    ensureSlotExists(accounts[username], slotIndex);
+    accounts[username].slots[slotIndex].dungeonsCleared = dungeonsCleared;
+    accounts[username].slots[slotIndex].gold = gold;
+    if (inventory) accounts[username].slots[slotIndex].inventory = inventory;
 
     fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
     res
@@ -97,20 +119,21 @@ app.post("/api/save-progress", (req, res) => {
   }
 });
 
-// --- SALVAR BATALHA EM TEMPO REAL ---
+// --- SALVAR BATALHA EM TEMPO REAL NO SLOT ESPECÍFICO ---
 app.post("/api/save-battle", (req, res) => {
-  const { username, team, dungeonState, inventory } = req.body;
+  const { username, slotIndex, team, dungeonState, inventory } = req.body;
   let accounts = JSON.parse(fs.readFileSync(accountsPath, "utf-8"));
 
   if (accounts[username]) {
-    accounts[username].saveData.team = team;
-    accounts[username].saveData.dungeonState = dungeonState;
-    if (inventory) accounts[username].saveData.inventory = inventory;
+    ensureSlotExists(accounts[username], slotIndex);
+    accounts[username].slots[slotIndex].team = team;
+    accounts[username].slots[slotIndex].dungeonState = dungeonState;
+    if (inventory) accounts[username].slots[slotIndex].inventory = inventory;
 
     fs.writeFileSync(accountsPath, JSON.stringify(accounts, null, 2));
     res.status(200).json({ message: "Batalha salva em tempo real!" });
   } else {
-    res.status(400).json({ error: "Usuàrio não encontrado" });
+    res.status(400).json({ error: "Usuário não encontrado" });
   }
 });
 

@@ -35,6 +35,8 @@ const mapGoldCounter = document.getElementById("map-gold-counter");
 
 const screenAccountSelect = document.getElementById("screen-account-select");
 const screenHome = document.getElementById("screen-home");
+const screenSlotSelect = document.getElementById("screen-slot-select");
+const slotList = document.getElementById("slot-list");
 const accountList = document.getElementById("account-list");
 const btnShowLogin = document.getElementById("btn-show-login");
 const homePlayerName = document.getElementById("home-player-name");
@@ -65,6 +67,7 @@ document
 // 2. ESTADO DO JOGO E SAVE
 // ==========================================
 let currentUser = null;
+let currentSlotIndex = null;
 let playerInventory = [];
 let myGroup = {
   name: "Grupo do Herói",
@@ -104,6 +107,7 @@ function saveMidBattle() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username: currentUser,
+      slotIndex: currentSlotIndex,
       team: myGroup.members,
       dungeonState: stateToSave,
       inventory: playerInventory,
@@ -118,6 +122,7 @@ function clearMidBattle() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username: currentUser,
+      slotIndex: currentSlotIndex,
       team: myGroup.members,
       dungeonState: null,
     }),
@@ -137,9 +142,7 @@ function showScreen(screenId) {
   document.getElementById(screenId).classList.remove("d-none");
 }
 
-function getSavedAccounts() {
-  return JSON.parse(localStorage.getItem("rpg_saved_accounts")) || [];
-}
+let userSlotsData = [];
 
 function saveAccountLocal(username) {
   let accounts = getSavedAccounts();
@@ -175,9 +178,24 @@ window.autoLogin = async function (username) {
   inputUser.value = username;
   inputPass.value = "";
   inputPass.focus();
+
+  showScreen("screen-login");
+
   loginMsg.innerText = `Digite a senha para ${username}`;
   loginMsg.className = "mt-3 mb-0 fw-bold text-info";
 };
+
+function showScreen(screenId) {
+  screenLogin.classList.add("d-none");
+  screenSlotSelect.classList.add("d-none");
+  screenHome.classList.add("d-none");
+  screenTavern.classList.add("d-none");
+  screenMap.classList.add("d-none");
+  screenBattle.classList.add("d-none");
+  document.getElementById(screenId).classList.remove("d-none");
+}
+
+let userSlotsData = []; // Guarda a info dos slots que desceu do servidor
 
 async function handleAccount(action) {
   const username = inputUser.value.trim();
@@ -189,7 +207,7 @@ async function handleAccount(action) {
     return;
   }
 
-  loginMsg.innerText = "Carregando...";
+  loginMsg.innerText = "Conectando ao Servidor...";
   loginMsg.className = "mt-3 mb-0 fw-bold text-info";
 
   try {
@@ -198,64 +216,105 @@ async function handleAccount(action) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
-
     const data = await res.json();
 
     if (!res.ok) {
       loginMsg.innerText = data.error;
       loginMsg.className = "mt-3 mb-0 fw-bold text-danger";
     } else {
-      loginMsg.innerText = data.message;
+      loginMsg.innerText = "Conectado!";
       loginMsg.className = "mt-3 mb-0 fw-bold text-success";
+
+      if (action === "register") {
+        setTimeout(() => handleAccount("login"), 1000);
+      }
 
       if (action === "login") {
         currentUser = username;
-        saveAccountLocal(username);
-        myGroup.gold = data.saveData.gold;
-        myGroup.dungeonsCleared = data.saveData.dungeonsCleared || 0;
-
-        playerInventory = data.saveData.inventory || [];
-
-        if (data.saveData.team && data.saveData.team.length === 3) {
-          myGroup.members = data.saveData.team;
-
-          if (data.saveData.dungeonState) {
-            gameState.currentMapId = data.saveData.dungeonState.currentMapId;
-            gameState.currentDungeonIndex =
-              data.saveData.dungeonState.currentDungeonIndex;
-            gameState.currentRoom = data.saveData.dungeonState.currentRoom;
-            gameState.enemiesLive = data.saveData.dungeonState.enemiesLive;
-            gameState.sessionRewards =
-              data.saveData.dungeonState.sessionRewards;
-
-            setTimeout(() => {
-              showScreen("screen-battle");
-              battleLog.innerHTML = "";
-              logMessage(
-                `Batalha Restaurada! Você voltou para a Sala ${gameState.currentRoom}.`,
-                "text-info fw-bold",
-              );
-              buildTurnQueue();
-              processNextTurn();
-            }, 1000);
-          } else {
-            setTimeout(() => {
-              renderHome();
-              showScreen("screen-home");
-            }, 1000);
-          }
-        } else {
-          renderTavern();
-          setTimeout(() => showScreen("screen-tavern"), 1000);
-        }
+        userSlotsData = data.saveData.slots || [null, null, null];
+        renderSlotSelection();
       }
     }
   } catch (err) {
-    console.error("Erro real:", err);
-    loginMsg.innerText = "Erro de conexão com o servidor.";
-    loginMsg.className = "mt-3 mb-0 fw-bold text-danger";
+    loginMsg.innerText = "Servidor offline.";
   }
 }
+
+function renderSlotSelection() {
+  slotList.innerHTML = "";
+
+  for (let i = 0; i < 3; i++) {
+    const slot = userSlotsData[i];
+    const col = document.createElement("div");
+    col.className = "col-md-4";
+
+    if (slot && slot.team && slot.team.length > 0) {
+      // SLOT OCUPADO
+      const leader = slot.team[0];
+      col.innerHTML = `
+        <div class="card p-3 border-success shadow" style="cursor: pointer; transition: 0.2s;" onmouseover="this.classList.add('border-warning')" onmouseout="this.classList.remove('border-warning')" onclick="selectSlot(${i}, true)">
+          <h5 class="text-success mb-2">Slot ${i + 1}</h5>
+          <i class="bi bi-person-fill text-light fs-1"></i>
+          <strong class="d-block text-info mt-2">${leader.name} +2</strong>
+          <small class="text-warning"><i class="bi bi-coin"></i> ${slot.gold} Ouro</small><br>
+          <small class="text-secondary">Progresso: Mapa ${slot.dungeonsCleared}</small>
+        </div>
+      `;
+    } else {
+      // SLOT VAZIO
+      col.innerHTML = `
+        <div class="card p-4 border-secondary shadow opacity-75" style="cursor: pointer; transition: 0.2s;" onmouseover="this.classList.add('border-info')" onmouseout="this.classList.remove('border-info')" onclick="selectSlot(${i}, false)">
+          <h5 class="text-secondary mb-3">Slot ${i + 1}</h5>
+          <i class="bi bi-plus-circle-dotted text-secondary fs-1 mb-2"></i>
+          <strong class="d-block text-light mt-2">Criar Novo Herói</strong>
+        </div>
+      `;
+    }
+    slotList.appendChild(col);
+  }
+  showScreen("screen-slot-select");
+}
+
+window.selectSlot = function (index, isOccupied) {
+  currentSlotIndex = index;
+
+  if (isOccupied) {
+    const slotData = userSlotsData[index];
+    myGroup.gold = slotData.gold || 0;
+    myGroup.dungeonsCleared = slotData.dungeonsCleared || 0;
+    playerInventory = slotData.inventory || [];
+    myGroup.members = slotData.team;
+
+    if (slotData.dungeonState) {
+      // Restaura Batalha
+      gameState.currentMapId = slotData.dungeonState.currentMapId;
+      gameState.currentDungeonIndex = slotData.dungeonState.currentDungeonIndex;
+      gameState.currentRoom = slotData.dungeonState.currentRoom;
+      gameState.enemiesLive = slotData.dungeonState.enemiesLive;
+      gameState.sessionRewards = slotData.dungeonState.sessionRewards;
+
+      showScreen("screen-battle");
+      battleLog.innerHTML = "";
+      logMessage(
+        `Batalha Restaurada! Sala ${gameState.currentRoom}.`,
+        "text-info fw-bold",
+      );
+      buildTurnQueue();
+      processNextTurn();
+    } else {
+      renderHome();
+      showScreen("screen-home");
+    }
+  } else {
+    // É um slot vazio! Zera as variáveis locais e manda pra Taverna criar o time
+    myGroup.gold = 0;
+    myGroup.dungeonsCleared = 0;
+    playerInventory = [];
+    myGroup.members = [];
+    renderTavern();
+    showScreen("screen-tavern");
+  }
+};
 
 function renderHome() {
   homePlayerName.innerText = currentUser;
@@ -1060,6 +1119,7 @@ function checkBattleEnd() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: currentUser,
+          slotIndex: currentSlotIndex,
           dungeonsCleared: myGroup.dungeonsCleared,
           gold: myGroup.gold,
           inventory: playerInventory,

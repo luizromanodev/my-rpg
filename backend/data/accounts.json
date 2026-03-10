@@ -84,17 +84,17 @@
           "role": "Dano Mágico",
           "description": "Uma lenda viva capaz de desintegrar exércitos.",
           "stars": 5,
-          "level": 5,
+          "level": 6,
           "exp": {
-            "current": 503,
-            "max": 757
+            "current": 97,
+            "max": 1135
           },
           "stats": {
-            "max_hp": 360,
-            "current_hp": 360,
-            "base_attack": 77,
-            "base_defense": 27,
-            "speed": 26
+            "max_hp": 400,
+            "current_hp": -1,
+            "base_attack": 85,
+            "base_defense": 30,
+            "speed": 28
           },
           "growth": {
             "hp": 40,
@@ -110,7 +110,13 @@
           ],
           "justTookDamage": false,
           "justLeveledUp": false,
-          "oldLevelForAnim": 4
+          "oldLevelForAnim": 5,
+          "justHealed": false,
+          "equipment": {
+            "weapon": null,
+            "armor": null
+          },
+          "justDied": false
         },
         {
           "id": "c2",
@@ -118,17 +124,17 @@
           "role": "Tanque",
           "description": "Protege o time com escudos pesados e muita vida.",
           "stars": 3,
-          "level": 6,
+          "level": 7,
           "exp": {
-            "current": 403,
-            "max": 757
+            "current": 87,
+            "max": 1135
           },
           "stats": {
-            "max_hp": 275,
-            "current_hp": 275,
-            "base_attack": 30,
-            "base_defense": 45,
-            "speed": 13
+            "max_hp": 300,
+            "current_hp": -14,
+            "base_attack": 33,
+            "base_defense": 70,
+            "speed": 14
           },
           "growth": {
             "hp": 25,
@@ -144,7 +150,13 @@
           ],
           "justTookDamage": false,
           "justLeveledUp": false,
-          "oldLevelForAnim": 5
+          "oldLevelForAnim": 6,
+          "justHealed": false,
+          "equipment": {
+            "weapon": null,
+            "armor": null
+          },
+          "justDied": false
         },
         {
           "id": "c4",
@@ -154,12 +166,12 @@
           "stars": 3,
           "level": 6,
           "exp": {
-            "current": 403,
+            "current": 538,
             "max": 757
           },
           "stats": {
             "max_hp": 200,
-            "current_hp": 200,
+            "current_hp": -27,
             "base_attack": 22,
             "base_defense": 20,
             "speed": 17
@@ -178,7 +190,9 @@
           ],
           "justTookDamage": false,
           "justLeveledUp": false,
-          "oldLevelForAnim": 5
+          "oldLevelForAnim": 5,
+          "justHealed": false,
+          "justDied": false
         }
       ],
       "dungeonState": null,

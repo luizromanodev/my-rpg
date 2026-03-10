@@ -4,10 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Meu RPG Vanilla JS</title>
+
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
     <style>
       body {
         background: radial-gradient(circle at top, #34495e, #1a252f, #0d1117);
@@ -56,7 +63,7 @@
         position: relative;
         background-color: rgba(22, 33, 46, 0.9);
         border: 2px solid #5d6d7e;
-        border-radius: 8 px;
+        border-radius: 8px;
         padding: 10px;
         transition:
           transform 0.2s,
@@ -207,8 +214,9 @@
       .anim-heal {
         animation: healAnim 0.5s ease-in-out;
       }
+
       /* ========================================= */
-      /* ANIMAÇÕES DE ESTRELAS GACHA (SHINY & CHROMATIC) */
+      /* ANIMAÇÕES DE ESTRELAS GACHA               */
       /* ========================================= */
 
       .star-container {
@@ -243,9 +251,8 @@
         }
       }
 
-      /* 5 Estrelas! (Cromático / Metálico / Holográfico) */
+      /* 5 Estrelas (Cromático) */
       .star-chromatic {
-        /* Cria o efeito arco-íris reflexivo */
         background: linear-gradient(
           124deg,
           #ff2400,
@@ -261,15 +268,13 @@
         background-size: 400% 400%;
         -webkit-background-clip: text;
         background-clip: text;
-        color: transparent; /* Faz a cor do texto sumir para o fundo cromático aparecer */
-
+        color: transparent;
         filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
         animation:
           chromatic-flow 3s ease infinite,
           pulse-chromatic 1s infinite alternate ease-in-out;
       }
 
-      /* Faz as cores do arco-íris girarem */
       @keyframes chromatic-flow {
         0% {
           background-position: 0% 50%;
@@ -282,7 +287,6 @@
         }
       }
 
-      /* Faz as estrelas pulsarem */
       @keyframes pulse-chromatic {
         from {
           filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
@@ -294,7 +298,7 @@
         }
       }
 
-      /* 7. Level Up */
+      /* Level Up */
       @keyframes levelUpAnim {
         0% {
           transform: scale(1);
@@ -314,6 +318,7 @@
       .anim-level-up {
         animation: levelUpAnim 1.2s ease-in-out;
       }
+
       /* SOBREPOSIÇÃO DE LEVEL UP */
       .level-up-overlay {
         position: absolute;
@@ -335,8 +340,6 @@
           visibility 0.5s ease;
         pointer-events: none;
       }
-
-      /* TEXTO "LEVEL UP" */
       .level-up-overlay .level-up-text {
         font-family: "Georgia", serif;
         font-size: 2rem;
@@ -347,21 +350,17 @@
           0 0 20px #ffeb3b;
         margin-bottom: 0.5rem;
       }
-
-      /* TEXTO DA PROGRESSÃO "5 > 6" */
       .level-up-overlay .level-progression {
         font-size: 1.2rem;
         color: #fff;
         font-weight: bold;
       }
-
       .mini-card.anim-level-up .level-up-overlay {
         opacity: 1;
         visibility: visible;
         animation: levelUpTextPulse 2s ease-out;
       }
 
-      /* ANIMAÇÃO DE PULSAÇÃO DO TEXTO */
       @keyframes levelUpTextPulse {
         0% {
           transform: scale(0.8);
@@ -382,17 +381,96 @@
         100% {
           transform: scale(1);
           opacity: 0;
-        } /* Desaparece no final */
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <div id="screen-login" class="row justify-content-center mt-5">
+      <div
+        id="screen-account-select"
+        class="row justify-content-center mt-5 text-center d-none"
+      >
+        <div class="col-md-8">
+          <h2 class="text-warning mb-4">
+            <i class="bi bi-controller"></i> Escolha sua Conta
+          </h2>
+          <div
+            id="account-list"
+            class="row justify-content-center gap-3 mb-4"
+          ></div>
+          <button id="btn-show-login" class="btn btn-outline-success fw-bold">
+            <i class="bi bi-person-plus-fill"></i> Adicionar Nova Conta
+          </button>
+        </div>
+      </div>
+
+      <div id="screen-home" class="d-none mt-4">
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2"
+        >
+          <div>
+            <h3 class="text-info m-0">
+              <i class="bi bi-person-circle"></i>
+              <span id="home-player-name">Jogador</span>
+            </h3>
+          </div>
+          <div
+            class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
+          >
+            <i class="bi bi-coin"></i> Ouro:
+            <span id="home-gold-counter">0</span>
+          </div>
+        </div>
+
+        <h4 class="text-center text-light mb-3">Seu Time Principal</h4>
+        <div
+          id="home-team-container"
+          class="row justify-content-center mb-5 min-vh-25"
+        ></div>
+
+        <div class="row justify-content-center g-3">
+          <div class="col-6 col-md-3">
+            <button
+              id="nav-btn-map"
+              class="btn btn-primary w-100 py-3 fw-bold shadow"
+            >
+              <i class="bi bi-map fs-2 d-block mb-1"></i> Explorar Mapa
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <button
+              id="nav-btn-tavern"
+              class="btn btn-success w-100 py-3 fw-bold shadow"
+            >
+              <i class="bi bi-houses-fill fs-2 d-block mb-1"></i> Taverna
+              (Heróis)
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <button
+              id="nav-btn-inventory"
+              class="btn btn-info w-100 py-3 fw-bold shadow text-dark"
+            >
+              <i class="bi bi-backpack-fill fs-2 d-block mb-1"></i> Inventário
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <button
+              id="nav-btn-shop"
+              class="btn btn-secondary w-100 py-3 fw-bold shadow"
+              disabled
+            >
+              <i class="bi bi-shop fs-2 d-block mb-1"></i> Loja (Em Breve)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-login" class="row justify-content-center mt-5 d-none">
         <div class="col-md-5">
           <div class="card p-4 shadow-lg text-center">
             <h2 class="text-warning mb-4">Bem-vindo ao RPG</h2>
-
             <input
               type="text"
               id="input-username"
@@ -405,7 +483,6 @@
               class="form-control mb-3"
               placeholder="Senha"
             />
-
             <div class="d-grid gap-2">
               <button id="btn-login" class="btn btn-primary fw-bold">
                 Entrar
@@ -414,14 +491,22 @@
                 Criar Nova Conta
               </button>
             </div>
-
             <p id="login-msg" class="mt-3 mb-0 fw-bold"></p>
           </div>
         </div>
       </div>
 
-      <div id="screen-tavern" class="row d-none mt-5 text-center">
+      <div id="screen-tavern" class="row d-none mt-4 text-center">
         <div class="col-12">
+          <div class="text-start mb-3 border-bottom border-secondary pb-3">
+            <button
+              id="btn-back-home-tavern"
+              class="btn btn-outline-light fw-bold shadow-sm"
+            >
+              <i class="bi bi-arrow-left"></i> Voltar à Base
+            </button>
+          </div>
+
           <h2 class="text-info mb-4">Taverna: Monte seu Time</h2>
           <p>Escolha 3 heróis para a sua jornada.</p>
 
@@ -447,16 +532,17 @@
           <h2 class="text-warning text-shadow m-0">Mapa Mundi</h2>
           <div class="d-flex gap-2 align-items-center">
             <button
-              id="btn-open-inventory"
-              class="btn btn-outline-info fw-bold shadow-sm"
+              id="btn-back-home-map"
+              class="btn btn-outline-light fw-bold shadow-sm"
             >
-              Inventário
+              <i class="bi bi-arrow-left"></i> Voltar à Base
             </button>
 
             <div
               class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
             >
-              Ouro: <span id="map-gold-counter">0</span>
+              <i class="bi bi-coin"></i> Ouro:
+              <span id="map-gold-counter">0</span>
             </div>
           </div>
         </div>
@@ -489,13 +575,13 @@
               id="btn-flee"
               class="btn btn-sm btn-outline-danger fw-bold mb-2 shadow-sm"
             >
-              🏃 Sair da Dungeon
+              <i class="bi bi-door-open-fill"></i> Fugir da Dungeon
             </button>
             <br />
             <div
               class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
             >
-              Ouro: <span id="gold-counter">0</span>
+              <i class="bi bi-coin"></i> Ouro: <span id="gold-counter">0</span>
             </div>
           </div>
         </div>
@@ -535,21 +621,21 @@
                   class="btn btn-danger fw-bold shadow border-dark"
                   disabled
                 >
-                  ATACAR
+                  <i class="bi bi-123"></i> ATACAR
                 </button>
                 <button
                   id="btn-skill"
                   class="btn btn-primary fw-bold shadow border-dark"
                   disabled
                 >
-                  HABILIDADE
+                  <i class="bi bi-stars"></i> HABILIDADE
                 </button>
                 <button
                   id="btn-potion"
                   class="btn btn-success fw-bold shadow border-dark"
                   disabled
                 >
-                  USAR POÇÃO
+                  <i class="bi bi-bandaid"></i> USAR POÇÃO
                 </button>
               </div>
             </div>
@@ -629,10 +715,11 @@
           style="max-height: 50vh; overflow-y: auto"
         ></div>
         <button id="btn-finish-dungeon" class="btn btn-warning btn-lg fw-bold">
-          Voltar para o Mapa
+          Retornar à Base
         </button>
       </div>
     </div>
+
     <div
       id="modal-inventory"
       class="d-none"
@@ -667,13 +754,62 @@
         >
           X
         </button>
-        <h3 class="text-warning text-center mb-3 mt-2">Sua Mochila</h3>
-
+        <h3 class="text-warning text-center mb-3 mt-2">
+          <i class="bi bi-backpack-fill"></i> Sua Mochila
+        </h3>
         <div
           id="inventory-content"
           class="row g-2 overflow-auto"
           style="flex-grow: 1; padding-right: 5px"
         ></div>
+      </div>
+    </div>
+
+    <div
+      id="modal-game-over"
+      class="d-none"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(20, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <div
+        class="card bg-dark border-danger p-4 text-light shadow-lg text-center"
+        style="max-width: 500px; width: 90%"
+      >
+        <h1
+          class="text-danger fw-bold mb-3"
+          style="text-shadow: 2px 2px 10px rgba(255, 0, 0, 0.5)"
+        >
+          GAME OVER
+        </h1>
+        <p class="text-secondary mb-4">Seu grupo foi derrotado!</p>
+
+        <div
+          id="modal-game-over-content"
+          class="text-start mb-4 bg-black p-3 rounded border border-secondary"
+          style="max-height: 40vh; overflow-y: auto"
+        ></div>
+
+        <div class="d-grid gap-3">
+          <button
+            id="btn-retry-dungeon"
+            class="btn btn-danger btn-lg fw-bold shadow"
+          >
+            <i class="bi bi-arrow-clockwise"></i> Tentar Novamente
+          </button>
+          <button id="btn-return-map" class="btn btn-outline-light fw-bold">
+            <i class="bi bi-house-door-fill"></i> Voltar à Base
+          </button>
+        </div>
       </div>
     </div>
 

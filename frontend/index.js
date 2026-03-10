@@ -33,6 +33,34 @@ const screenMap = document.getElementById("screen-map");
 const worldMapsContainer = document.getElementById("world-maps-container");
 const mapGoldCounter = document.getElementById("map-gold-counter");
 
+const screenAccountSelect = document.getElementById("screen-account-select");
+const screenHome = document.getElementById("screen-home");
+const accountList = document.getElementById("account-list");
+const btnShowLogin = document.getElementById("btn-show-login");
+const homePlayerName = document.getElementById("home-player-name");
+const homeGoldCounter = document.getElementById("home-gold-counter");
+const homeTeamContainer = document.getElementById("home-team-container");
+
+// Navegação da Home e Botões de Voltar
+document.getElementById("nav-btn-map").addEventListener("click", () => {
+  showScreen("screen-map");
+  renderMapScreen();
+});
+document.getElementById("nav-btn-tavern").addEventListener("click", () => {
+  showScreen("screen-tavern");
+  renderTavern();
+});
+document.getElementById("btn-back-home-map").addEventListener("click", () => {
+  renderHome();
+  showScreen("screen-home");
+});
+document
+  .getElementById("btn-back-home-tavern")
+  .addEventListener("click", () => {
+    renderHome();
+    showScreen("screen-home");
+  });
+
 // ==========================================
 // 2. ESTADO DO JOGO E SAVE
 // ==========================================
@@ -100,12 +128,56 @@ function clearMidBattle() {
 // 3. GERENCIAMENTO DE TELAS E CONTAS
 // ==========================================
 function showScreen(screenId) {
+  screenAccountSelect.classList.add("d-none");
   screenLogin.classList.add("d-none");
+  screenHome.classList.add("d-none");
   screenTavern.classList.add("d-none");
   screenMap.classList.add("d-none");
   screenBattle.classList.add("d-none");
   document.getElementById(screenId).classList.remove("d-none");
 }
+
+function getSavedAccounts() {
+  return JSON.parse(localStorage.getItem("rpg_saved_accounts")) || [];
+}
+
+function saveAccountLocal(username) {
+  let accounts = getSavedAccounts();
+  if (!accounts.includes(username)) {
+    accounts.push(username);
+    if (accounts.length > 2) accounts.shift();
+    localStorage.setItem("rpg_saved_accounts", JSON.stringify(accounts));
+  }
+}
+
+function renderAccountSelect() {
+  const accounts = getSavedAccounts();
+  accountList.innerHTML = "";
+  if (accounts.length === 0) return showScreen("screen-login");
+
+  accounts.forEach((acc) => {
+    const col = document.createElement("div");
+    col.className = "col-md-5";
+    col.innerHTML = `
+    <div class="card p-4 border-info shadow" style="cursor: pointer; transition: 0.2s;" onmouseover="this.classList.add('border-warning')" onmouseout="this.classList.remove('border-warning')" onclick="autoLogin('${acc}')">
+        <i class="bi bi-person-badge fs-1 text-info mb-2 d-block"></i><h4 class="text-light m-0">${acc}</h4>
+      </div>`;
+    accountList.appendChild(col);
+  });
+
+  btnShowLogin.classList.toggle("d-none", accounts.length >= 2);
+  showScreen("screen-account-select");
+}
+
+btnShowLogin.addEventListener("click", () => showScreen("screen-login"));
+
+window.autoLogin = async function (username) {
+  inputUser.value = username;
+  inputPass.value = "";
+  inputPass.focus();
+  loginMsg.innerText = `Digite a senha para ${username}`;
+  loginMsg.className = "mt-3 mb-0 fw-bold text-info";
+};
 
 async function handleAccount(action) {
   const username = inputUser.value.trim();
@@ -138,6 +210,7 @@ async function handleAccount(action) {
 
       if (action === "login") {
         currentUser = username;
+        saveAccountLocal(username);
         myGroup.gold = data.saveData.gold;
         myGroup.dungeonsCleared = data.saveData.dungeonsCleared || 0;
 
@@ -167,8 +240,8 @@ async function handleAccount(action) {
             }, 1000);
           } else {
             setTimeout(() => {
-              renderMapScreen();
-              showScreen("screen-map");
+              renderHome();
+              showScreen("screen-home");
             }, 1000);
           }
         } else {
@@ -182,6 +255,33 @@ async function handleAccount(action) {
     loginMsg.innerText = "Erro de conexão com o servidor.";
     loginMsg.className = "mt-3 mb-0 fw-bold text-danger";
   }
+}
+
+function renderHome() {
+  homePlayerName.innerText = currentUser;
+  homeGoldCounter.innerText = myGroup.gold;
+  homeTeamContainer.innerHTML = "";
+
+  myGroup.members.forEach((hero) => {
+    const col = document.createElement("div");
+    col.className = "col-4 col-md-3";
+    let classIcon = "bi-person";
+    if (hero.role === "Tanque") classIcon = "bi-shield-shaded";
+    if (hero.role === "Mago") classIcon = "bi-magic";
+    if (hero.role === "Guerreiro") classIcon = "bi-sword";
+    if (hero.role === "Curandeiro" || hero.role === "Suporte")
+      classIcon = "bi-heart-pulse-fill";
+
+    col.innerHTML = `
+    <div class="card p-3 bg-dark border-secondary text-center h-100 shadow" style="cursor: pointer" onclick="showHeroDetailsById('${hero.id}')">
+        <i class="bi ${classIcon} text-info mb-2" style="font-size: 3rem;"></i>
+        <h5 class="text-light mb-1" style="font-size: 1.1rem;">${hero.name}</h5>
+        <div class="mb-2">${getStarsHTML(hero.stars)}</div>
+        <span class="badge bg-secondary mb-2">Nível ${hero.level || 1}</span>
+        <div class="progress mt-auto" style="height: 5px;"><div class="progress-bar bg-success" style="width: ${(hero.stats.current_hp / hero.stats.max_hp) * 100}%"></div></div>
+      </div>`;
+    homeTeamContainer.appendChild(col);
+  });
 }
 
 btnLogin.addEventListener("click", () => handleAccount("login"));
@@ -201,8 +301,8 @@ btnStartAdventure.addEventListener("click", async () => {
     console.error("Erro ao salvar time:", err);
   }
 
-  renderMapScreen();
-  showScreen("screen-map");
+  renderHome();
+  showScreen("screen-home");
 });
 
 // ==========================================
@@ -215,7 +315,7 @@ async function init() {
   const dbLoaded = await loadDatabase();
 
   if (dbLoaded) {
-    console.log("Banco de dados pronto! Aguardando jogador fazer login.");
+    renderAccountSelect();
   } else {
     loginMsg.innerText =
       "Erro ao carregar o banco de dados. O servidor está ligado?";
@@ -588,19 +688,8 @@ function startRoom() {
     "text-warning fw-bold",
   );
 
-  if (gameState.currentRoom === 1) {
-    // Sala 1: Ninguém tem turno ainda, calcula do zero
-    buildTurnQueue();
-  } else {
-    // Salas Seguintes: Remove os mortos da fila atual
-    gameState.turnQueue = gameState.turnQueue.filter(
-      (c) => c.stats.current_hp > 0,
-    );
-    // Adiciona os monstros recém-nascidos na fila
-    gameState.turnQueue.push(...gameState.enemiesLive);
-    // Reordena a fila pela velocidade
-    gameState.turnQueue.sort((a, b) => b.stats.speed - a.stats.speed);
-  }
+  // Recalcula a fila de turnos do zero toda vez que entra numa sala nova
+  buildTurnQueue();
 
   saveMidBattle();
   processNextTurn();
@@ -926,14 +1015,22 @@ function checkBattleEnd() {
 
   // GAME OVER
   if (aliveHeroes.length === 0) {
+    // 1. APAGA O SAVE IMEDIATAMENTE!
     clearMidBattle();
+
     logMessage(
-      `GAME OVER! Seu grupo foi aniquilado na Sala ${gameState.currentRoom}...`,
+      `GAME OVER! O seu grupo foi aniquilado na Sala ${gameState.currentRoom}...`,
       "text-danger fw-bold",
     );
     btnAttack.disabled = true;
     btnSkill.disabled = true;
     btnPotion.disabled = true;
+
+    // Aguarda 1.5s para o jogador ver a derrota e chama a tela
+    setTimeout(() => {
+      showGameOverScreen();
+    }, 1500);
+
     return true;
   }
 
@@ -1197,8 +1294,8 @@ const modalSummary = document.getElementById("modal-summary");
 const modalSummaryContent = document.getElementById("modal-summary-content");
 document.getElementById("btn-finish-dungeon").addEventListener("click", () => {
   modalSummary.classList.add("d-none");
-  showScreen("screen-map");
-  renderMapScreen();
+  renderHome();
+  renderMapScreen("screen-home");
 });
 
 function showDungeonSummary() {
@@ -1281,13 +1378,12 @@ btnFlee.addEventListener("click", () => {
   );
 
   if (confirmFlee) {
-    ("");
     // para o turno e a i.a do mob
     clearTimeout(turnTimer);
     // apaga o save
     clearMidBattle();
-    showScreen("screen-map");
-    renderMapScreen();
+    renderHome();
+    showScreen("screen-home");
     console.log("O Jogador saiu da batalha");
   }
 });
@@ -1297,7 +1393,6 @@ btnFlee.addEventListener("click", () => {
 // ==========================================
 const modalInventory = document.getElementById("modal-inventory");
 const inventoryContent = document.getElementById("inventory-content");
-const btnOpenInventory = document.getElementById("btn-open-inventory");
 const btnCloseInventory = document.getElementById("btn-close-inventory");
 
 // Fechar Inventario
@@ -1306,7 +1401,7 @@ btnCloseInventory.addEventListener("click", () => {
 });
 
 // Abrir inventario e desenhar itens
-btnOpenInventory.addEventListener("click", () => {
+document.getElementById("nav-btn-inventory").addEventListener("click", () => {
   modalInventory.classList.remove("d-none");
   inventoryContent.innerHTML = "";
 
@@ -1341,10 +1436,10 @@ btnOpenInventory.addEventListener("click", () => {
     }
 
     // Define o ícone pelo tipo
-    let icon = "📦";
-    if (itemData.type === "weapon") icon = "🗡️";
-    if (itemData.type === "armor") icon = "🛡️";
-    if (itemData.type === "consumable") icon = "🧪";
+    let icon = "<i class='bi bi-box'></i>";
+    if (itemData.type === "weapon") icon = "<i class='bi bi-sword'></i>";
+    if (itemData.type === "armor") icon = "<i class='bi bi-shield'></i>";
+    if (itemData.type === "consumable") icon = "<i class='bi bi-bandaid'></i>";
 
     const col = document.createElement("div");
     col.className = "col-md-6"; // Dois itens por linha no pc e um no celular
@@ -1492,3 +1587,112 @@ window.unequipItem = function (heroId, type, render = true) {
     showHeroDetails(hero);
   }
 };
+
+// ==========================================
+// GAME OVER (PERDAS E GANHOS)
+// ==========================================
+const modalGameOver = document.getElementById("modal-game-over");
+const modalGameOverContent = document.getElementById("modal-game-over-content");
+const btnRetryDungeon = document.getElementById("btn-retry-dungeon");
+const btnReturnMap = document.getElementById("btn-return-map");
+
+function showGameOverScreen() {
+  modalGameOver.classList.remove("d-none");
+
+  const lostItems = [];
+
+  // vasculha itens ganhos na dungeon
+  gameState.sessionRewards.drops.forEach((itemName) => {
+    const itemData = database.items.find((i) => i.name === itemName);
+
+    // Se nao foir consumivel nao remove
+    if (itemData && itemData.type !== "consumable") {
+      lostItems.push(itemName);
+
+      // Remove da mochila
+      const bagIndex = playerInventory.findIndex(
+        (bag) => bag.item_id === itemData.id,
+      );
+      if (bagIndex !== -1) {
+        playerInventory[bagIndex].quantity -= 1;
+        if (playerInventory[bagIndex].quantity <= 0) {
+          playerInventory.splice(bagIndex, 1);
+        }
+      }
+    }
+  });
+
+  // conta os itens perdidos e mostra na tela
+  const dropCounts = {};
+  lostItems.forEach((item) => {
+    dropCounts[item] = (dropCounts[item] || 0) + 1;
+  });
+  const lostKeys = Object.keys(dropCounts);
+
+  let lostHtml =
+    lostKeys.length > 0
+      ? lostKeys
+          .map(
+            (item) =>
+              `<li><span class="text-danger fw-bold">-${dropCounts[item]}x</span> <span class="text-secondary text-decoration-line-through">${item}</span></li>`,
+          )
+          .join("")
+      : "<li class='text-secondary'>Nenhum equipamento foi perdido.</li>";
+
+  // Monta a interface
+  modalGameOverContent.innerHTML = `
+    <h5 class="text-success mb-2">O que você salvou:</h5>
+    <ul class="list-unstyled mb-3 text-light">
+      <li>+${gameState.sessionRewards.gold} Ouro</li>
+      <li>+${gameState.sessionRewards.exp} EXP (Mantido nos Heróis)</li>
+      <li>Poções dropadas foram mantidas.</li>
+    </ul>
+    
+    <h5 class="text-danger border-top border-secondary pt-3 mb-2">❌ O que ficou para trás:</h5>
+    <ul class="list-unstyled mb-0">
+      ${lostHtml}
+    </ul>
+  `;
+
+  // Salva a perda no banco de dados
+  clearMidBattle();
+  fetch("http://localhost:3000/api/save-progress", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: currentUser,
+      dungeonsCleared: myGroup.dungeonsCleared,
+      gold: myGroup.gold,
+      inventory: playerInventory, // Salva o inventario sem os itens perdidos
+    }),
+  });
+
+  // Salva o EXP
+  fetch("http://localhost:3000/api/save-team", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: currentUser, team: myGroup.members }),
+  });
+}
+
+// Funcao para reviver os herois mortos
+function healTeamForNextRun() {
+  myGroup.members.forEach((hero) => {
+    hero.stats.current_hp = hero.stats.max_hp;
+  });
+}
+
+// botao voltar ao mapa
+btnReturnMap.addEventListener("click", () => {
+  modalGameOver.classList.add("d-none");
+  healTeamForNextRun();
+  renderHome();
+  showScreen("screen-home");
+});
+
+btnRetryDungeon.addEventListener("click", () => {
+  modalGameOver.classList.add("d-none");
+  healTeamForNextRun();
+  gameState.currentRoom = 1;
+  startRoom();
+});

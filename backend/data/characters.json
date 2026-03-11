@@ -6,7 +6,10 @@
     "description": "Um morador local com uma tampa de panela.",
     "stars": 1,
     "level": 1,
-    "exp": { "current": 0, "max": 100 },
+    "exp": {
+      "current": 0,
+      "max": 100
+    },
     "stats": {
       "max_hp": 80,
       "current_hp": 80,
@@ -14,8 +17,18 @@
       "base_defense": 5,
       "speed": 5
     },
-    "growth": { "hp": 10, "attack": 1, "defense": 2, "speed": 0 },
-    "inventory": [{ "item_id": 1, "quantity": 3 }]
+    "growth": {
+      "hp": 10,
+      "attack": 1,
+      "defense": 2,
+      "speed": 0
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
   },
   {
     "id": "c2",
@@ -24,7 +37,10 @@
     "description": "Protege o time com escudos pesados e muita vida.",
     "stars": 3,
     "level": 1,
-    "exp": { "current": 0, "max": 100 },
+    "exp": {
+      "current": 0,
+      "max": 100
+    },
     "stats": {
       "max_hp": 150,
       "current_hp": 150,
@@ -32,8 +48,18 @@
       "base_defense": 20,
       "speed": 8
     },
-    "growth": { "hp": 25, "attack": 3, "defense": 5, "speed": 1 },
-    "inventory": [{ "item_id": 1, "quantity": 3 }]
+    "growth": {
+      "hp": 25,
+      "attack": 3,
+      "defense": 5,
+      "speed": 1
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
   },
   {
     "id": "c3",
@@ -42,7 +68,10 @@
     "description": "Uma lenda viva capaz de desintegrar exércitos.",
     "stars": 5,
     "level": 1,
-    "exp": { "current": 0, "max": 150 },
+    "exp": {
+      "current": 0,
+      "max": 150
+    },
     "stats": {
       "max_hp": 200,
       "current_hp": 200,
@@ -50,8 +79,18 @@
       "base_defense": 15,
       "speed": 18
     },
-    "growth": { "hp": 40, "attack": 8, "defense": 3, "speed": 2 },
-    "inventory": [{ "item_id": 1, "quantity": 3 }]
+    "growth": {
+      "hp": 40,
+      "attack": 8,
+      "defense": 3,
+      "speed": 2
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
   },
   {
     "id": "c4",
@@ -60,7 +99,10 @@
     "description": "Mantém a equipe viva com feitiços de cura.",
     "stars": 3,
     "level": 1,
-    "exp": { "current": 0, "max": 100 },
+    "exp": {
+      "current": 0,
+      "max": 100
+    },
     "stats": {
       "max_hp": 100,
       "current_hp": 100,
@@ -68,7 +110,17 @@
       "base_defense": 10,
       "speed": 12
     },
-    "growth": { "hp": 20, "attack": 2, "defense": 2, "speed": 1 },
-    "inventory": [{ "item_id": 1, "quantity": 3 }]
+    "growth": {
+      "hp": 20,
+      "attack": 2,
+      "defense": 2,
+      "speed": 1
+    },
+    "inventory": [
+      {
+        "item_id": 1,
+        "quantity": 3
+      }
+    ]
   }
 ]

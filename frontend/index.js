@@ -30,6 +30,8 @@ const dungeonName = document.getElementById("dungeon-name");
 const dungeonRoom = document.getElementById("dungeon-room");
 
 const screenMap = document.getElementById("screen-map");
+const screenShop = document.getElementById("screen-shop");
+const shopGoldCounter = document.getElementById("shop-gold-counter");
 const worldMapsContainer = document.getElementById("world-maps-container");
 const mapGoldCounter = document.getElementById("map-gold-counter");
 
@@ -42,6 +44,15 @@ const btnShowLogin = document.getElementById("btn-show-login");
 const homePlayerName = document.getElementById("home-player-name");
 const homeGoldCounter = document.getElementById("home-gold-counter");
 const homeTeamContainer = document.getElementById("home-team-container");
+
+const modalGameOver = document.getElementById("modal-game-over");
+const modalGameOverContent = document.getElementById("modal-game-over-content");
+const btnRetryDungeon = document.getElementById("btn-retry-dungeon");
+const btnReturnMap = document.getElementById("btn-return-map");
+
+const modalInventory = document.getElementById("modal-inventory");
+const inventoryContent = document.getElementById("inventory-content");
+const btnCloseInventory = document.getElementById("btn-close-inventory");
 
 // Navegação da Home e Botões de Voltar
 document.getElementById("nav-btn-map").addEventListener("click", () => {
@@ -56,12 +67,15 @@ document.getElementById("btn-back-home-map").addEventListener("click", () => {
   renderHome();
   showScreen("screen-home");
 });
-document
-  .getElementById("btn-back-home-tavern")
-  .addEventListener("click", () => {
-    renderHome();
-    showScreen("screen-home");
-  });
+document.getElementById("btn-back-home-tavern").addEventListener("click", () => {
+  renderHome();
+  showScreen("screen-home");
+});
+
+document.getElementById("btn-back-home-shop").addEventListener("click", () => {
+  renderHome();
+  showScreen("screen-home");
+});
 
 // ==========================================
 // 2. ESTADO DO JOGO E SAVE
@@ -69,6 +83,10 @@ document
 let currentUser = null;
 let currentSlotIndex = null;
 let playerInventory = [];
+
+let playerRoster = [];
+let activeTeamIds = []
+
 let myGroup = {
   name: "Grupo do Herói",
   gold: 0,
@@ -108,7 +126,7 @@ function saveMidBattle() {
     body: JSON.stringify({
       username: currentUser,
       slotIndex: currentSlotIndex,
-      team: myGroup.members,
+      team: { roster: playerRoster, activeIds: activeTeamIds },
       dungeonState: stateToSave,
       inventory: playerInventory,
     }),
@@ -123,7 +141,7 @@ function clearMidBattle() {
     body: JSON.stringify({
       username: currentUser,
       slotIndex: currentSlotIndex,
-      team: myGroup.members,
+      team: { roster: playerRoster, activeIds: activeTeamIds },
       dungeonState: null,
     }),
   });
@@ -135,14 +153,21 @@ function clearMidBattle() {
 function showScreen(screenId) {
   screenAccountSelect.classList.add("d-none");
   screenLogin.classList.add("d-none");
+  screenSlotSelect.classList.add("d-none");
   screenHome.classList.add("d-none");
   screenTavern.classList.add("d-none");
   screenMap.classList.add("d-none");
+  screenShop.classList.add("d-none")
   screenBattle.classList.add("d-none");
+
   document.getElementById(screenId).classList.remove("d-none");
 }
 
 let userSlotsData = [];
+
+function getSavedAccounts() {
+  return JSON.parse(localStorage.getItem("rpg_saved_accounts")) || [];
+}
 
 function saveAccountLocal(username) {
   let accounts = getSavedAccounts();
@@ -172,7 +197,9 @@ function renderAccountSelect() {
   showScreen("screen-account-select");
 }
 
-btnShowLogin.addEventListener("click", () => showScreen("screen-login"));
+if (btnShowLogin) {
+  btnShowLogin.addEventListener("click", () => showScreen("screen-login"));
+}
 
 window.autoLogin = async function (username) {
   inputUser.value = username;
@@ -184,18 +211,6 @@ window.autoLogin = async function (username) {
   loginMsg.innerText = `Digite a senha para ${username}`;
   loginMsg.className = "mt-3 mb-0 fw-bold text-info";
 };
-
-function showScreen(screenId) {
-  screenLogin.classList.add("d-none");
-  screenSlotSelect.classList.add("d-none");
-  screenHome.classList.add("d-none");
-  screenTavern.classList.add("d-none");
-  screenMap.classList.add("d-none");
-  screenBattle.classList.add("d-none");
-  document.getElementById(screenId).classList.remove("d-none");
-}
-
-let userSlotsData = []; // Guarda a info dos slots que desceu do servidor
 
 async function handleAccount(action) {
   const username = inputUser.value.trim();
@@ -226,11 +241,13 @@ async function handleAccount(action) {
       loginMsg.className = "mt-3 mb-0 fw-bold text-success";
 
       if (action === "register") {
+        saveAccountLocal(username);
         setTimeout(() => handleAccount("login"), 1000);
       }
 
       if (action === "login") {
         currentUser = username;
+        saveAccountLocal(username);
         userSlotsData = data.saveData.slots || [null, null, null];
         renderSlotSelection();
       }
@@ -283,7 +300,22 @@ window.selectSlot = function (index, isOccupied) {
     myGroup.gold = slotData.gold || 0;
     myGroup.dungeonsCleared = slotData.dungeonsCleared || 0;
     playerInventory = slotData.inventory || [];
-    myGroup.members = slotData.team;
+    if (slotData.team && !Array.isArray(slotData.team)) {
+      playerRoster = slotData.team.roster || [];
+      activeTeamIds = slotData.team.activeIds || [];
+    } else {
+      playerRoster = slotData.team || [];
+      activeTeamIds = playerRoster.map(h => h.id)
+    }
+
+    if (playerRoster.length === 0 && database.characters.length >= 3) {
+      playerRoster.push(structuredClone(database.characters[0]));
+      playerRoster.push(structuredClone(database.characters[1]));
+      playerRoster.push(structuredClone(database.characters[2]));
+      activeTeamIds = playerRoster.map(h => h.id);
+    }
+
+    myGroup.members = playerRoster.filter(h => activeTeamIds.includes(h.id));
 
     if (slotData.dungeonState) {
       // Restaura Batalha
@@ -306,13 +338,48 @@ window.selectSlot = function (index, isOccupied) {
       showScreen("screen-home");
     }
   } else {
-    // É um slot vazio! Zera as variáveis locais e manda pra Taverna criar o time
     myGroup.gold = 0;
     myGroup.dungeonsCleared = 0;
     playerInventory = [];
     myGroup.members = [];
-    renderTavern();
-    showScreen("screen-tavern");
+    playerRoster = [];
+    activeTeamIds = [];
+
+    // Mostra a tela de Gacha Inicial
+    document.getElementById("modal-initial-gacha").classList.remove("d-none");
+
+    // Pega 3 heróis ÚNICOS aleatórios do banco de dados
+    let pool = [...database.characters];
+    let initialHeroes = [];
+
+    for (let i = 0; i < 3; i++) {
+      let randomIndex = Math.floor(Math.random() * pool.length);
+      initialHeroes.push(structuredClone(pool[randomIndex]));
+      pool.splice(randomIndex, 1); // Remove da pool para não vir repetido no time inicial
+    }
+
+    // Define o time inicial
+    playerRoster = initialHeroes;
+    activeTeamIds = initialHeroes.map(h => h.id);
+    myGroup.members = playerRoster;
+
+    // Renderiza os 3 heróis sorteados na tela
+    const resultsContainer = document.getElementById("initial-gacha-results");
+    resultsContainer.innerHTML = "";
+
+    initialHeroes.forEach(hero => {
+      const col = document.createElement("div");
+      col.className = "col-10 col-md-3 mb-2";
+      col.innerHTML = `
+        <div class="card p-3 border-warning text-center shadow-lg h-100 bg-dark" style="animation: pulse-gold 2s infinite alternate;">
+          <h4 class="text-warning">${hero.name}</h4>
+          <div class="mb-2">${getStarsHTML(hero.stars)}</div>
+          <span class="badge bg-secondary mb-2">${hero.role}</span>
+          <p class="text-light mt-2" style="font-size: 0.85rem;">HP: ${hero.stats.max_hp} | ATQ: ${hero.stats.base_attack}</p>
+        </div>
+      `;
+      resultsContainer.appendChild(col);
+    });
   }
 };
 
@@ -353,7 +420,7 @@ btnStartAdventure.addEventListener("click", async () => {
     await fetch("http://localhost:3000/api/save-team", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: currentUser, team: myGroup.members }),
+      body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } }),
     });
     console.log("Time salvo no servidor com sucesso!");
   } catch (err) {
@@ -383,78 +450,73 @@ async function init() {
 }
 
 // ==========================================
-// 5. SELEÇÃO DE EQUIPE (TAVERNA)
+// 5. COLEÇÃO DE HERÓIS E TIME (TAVERNA)
 // ==========================================
 function renderTavern() {
   rosterContainer.innerHTML = "";
-  myGroup.members = [];
 
-  btnStartAdventure.disabled = true;
-  btnStartAdventure.innerText = `Selecione 3 Heróis (0/3)`;
-  btnStartAdventure.className = "btn btn-secondary btn-lg fw-bold shadow mt-3";
+  btnStartAdventure.disabled = activeTeamIds.length !== 3;
+  btnStartAdventure.innerText = `Confirmar Time (${activeTeamIds.length}/3)`;
+  btnStartAdventure.className = activeTeamIds.length === 3 ? "btn btn-warning btn-lg fw-bold shadow mt-3" : "btn btn-secondary btn-lg fw-bold shadow mt-3";
 
-  database.characters.forEach((char) => {
+  // Varre TODOS os personagens que existem no banco de dados
+  database.characters.forEach((dbChar) => {
     const col = document.createElement("div");
     col.className = "col-md-3 mb-3";
-
     const card = document.createElement("div");
-    card.className = "card p-3 h-100 text-start border-secondary";
-    card.style.cursor = "pointer";
-    card.style.transition = "transform 0.2s, border-color 0.2s";
 
-    // Adicionado as estrelas e nível na Taverna!
-    card.innerHTML = `
-      <h4 class="text-warning text-center mb-0">${char.name}</h4>
-      <div class="text-center mb-1 d-flex justify-content-center align-items-center gap-2">
-        ${getStarsHTML(char.stars)} 
-        <span class="text-light" style="font-size: 0.8rem;">Lv.${char.level || 1}</span>
-      </div>
-      <div class="text-center mb-2">
-        <span class="badge bg-info text-dark">${char.role}</span>
-      </div>
-      <p style="font-size: 0.85rem; height: 40px;">${char.description}</p>
-      <hr class="border-secondary mt-0">
-      <ul class="list-unstyled mb-0 fw-bold" style="font-size: 0.85rem;">
-        <li class="text-success">HP: ${char.stats.max_hp}</li>
-        <li class="text-danger">ATQ: ${char.stats.base_attack}</li>
-        <li class="text-primary">DEF: ${char.stats.base_defense}</li>
-        <li class="text-warning">VEL: ${char.stats.speed}</li>
-      </ul>
-    `;
+    // Verifica se o jogador já possui este herói na coleção
+    const ownedHero = playerRoster.find(h => h.id === dbChar.id);
+    const isSelected = activeTeamIds.includes(dbChar.id);
 
-    card.addEventListener("click", () => {
-      const isSelected = myGroup.members.some((m) => m.id === char.id);
+    if (ownedHero) {
+      // === HERÓI DESBLOQUEADO ===
+      card.className = `card p-3 h-100 text-start ${isSelected ? 'border-warning shadow-lg' : 'border-secondary'}`;
+      card.style.cursor = "pointer";
+      card.style.transition = "transform 0.2s, border-color 0.2s";
+      if (isSelected) card.style.transform = "scale(1.05)";
 
-      if (isSelected) {
-        myGroup.members = myGroup.members.filter((m) => m.id !== char.id);
-        card.classList.remove("border-warning", "shadow-lg");
-        card.classList.add("border-secondary");
-        card.style.transform = "scale(1)";
-      } else {
-        if (myGroup.members.length < 3) {
-          myGroup.members.push(structuredClone(char));
-          card.classList.remove("border-secondary");
-          card.classList.add("border-warning", "shadow-lg");
-          card.style.transform = "scale(1.05)";
+      card.innerHTML = `
+        <h4 class="text-warning text-center mb-0">${ownedHero.name}</h4>
+        <div class="text-center mb-1 d-flex justify-content-center align-items-center gap-2">
+          ${getStarsHTML(ownedHero.stars)} 
+          <span class="text-light" style="font-size: 0.8rem;">Lv.${ownedHero.level || 1}</span>
+        </div>
+        <div class="text-center mb-2">
+          <span class="badge bg-info text-dark">${ownedHero.role}</span>
+        </div>
+        <hr class="border-secondary mt-0 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); showHeroDetailsById('${ownedHero.id}')">
+            <i class="bi bi-gear-fill"></i> Equipar
+          </button>
+          ${isSelected ? '<span class="badge bg-warning text-dark"><i class="bi bi-check-circle-fill"></i> No Time</span>' : ''}
+        </div>
+      `;
+
+      card.addEventListener("click", () => {
+        if (isSelected) {
+          activeTeamIds = activeTeamIds.filter(id => id !== ownedHero.id);
         } else {
-          alert("Você só pode selecionar 3 heróis para a aventura!");
-          return;
+          if (activeTeamIds.length < 3) activeTeamIds.push(ownedHero.id);
+          else return alert("Você só pode levar 3 heróis para a batalha!");
         }
-      }
+        // Atualiza a equipe ativa e re-renderiza
+        myGroup.members = playerRoster.filter(h => activeTeamIds.includes(h.id));
+        renderTavern();
+      });
 
-      const count = myGroup.members.length;
-      if (count === 3) {
-        btnStartAdventure.disabled = false;
-        btnStartAdventure.innerText = `Ir para a Arena`;
-        btnStartAdventure.className =
-          "btn btn-warning btn-lg fw-bold shadow mt-3";
-      } else {
-        btnStartAdventure.disabled = true;
-        btnStartAdventure.innerText = `Selecione 3 Heróis (${count}/3)`;
-        btnStartAdventure.className =
-          "btn btn-secondary btn-lg fw-bold shadow mt-3";
-      }
-    });
+    } else {
+      // === HERÓI BLOQUEADO ===
+      card.className = "card p-3 h-100 text-center border-secondary bg-dark opacity-50";
+      card.innerHTML = `
+        <i class="bi bi-lock-fill text-secondary" style="font-size: 3rem;"></i>
+        <h5 class="text-secondary mt-2">${dbChar.name}</h5>
+        <div class="mb-2">${getStarsHTML(dbChar.stars)}</div>
+        <span class="badge bg-secondary mb-2">${dbChar.role}</span>
+        <small class="text-secondary d-block mt-auto pt-2">Adquira na Loja</small>
+      `;
+    }
 
     col.appendChild(card);
     rosterContainer.appendChild(col);
@@ -1130,7 +1192,7 @@ function checkBattleEnd() {
         .catch((err) => console.error("Erro ao salvar progresso:", err));
 
       // Cura a equipe para a próxima aventura
-      myGroup.members.forEach((hero) => {
+      playerRoster.forEach((hero) => {
         hero.stats.current_hp = hero.stats.max_hp;
       });
 
@@ -1140,7 +1202,8 @@ function checkBattleEnd() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: currentUser,
-          team: myGroup.members,
+          slotIndex: currentSlotIndex,
+          team: { roster: playerRoster, activeIds: activeTeamIds }
         }),
       })
         .then((res) => res.json())
@@ -1355,7 +1418,7 @@ const modalSummaryContent = document.getElementById("modal-summary-content");
 document.getElementById("btn-finish-dungeon").addEventListener("click", () => {
   modalSummary.classList.add("d-none");
   renderHome();
-  renderMapScreen("screen-home");
+  showScreen("screen-home");
 });
 
 function showDungeonSummary() {
@@ -1373,11 +1436,11 @@ function showDungeonSummary() {
   let dropsHtml =
     dropKeys.length > 0
       ? dropKeys
-          .map(
-            (item) =>
-              `<li><span class="text-warning fw-bold">${dropCounts[item]}x</span> <span class="text-info">${item}</span></li>`,
-          )
-          .join("")
+        .map(
+          (item) =>
+            `<li><span class="text-warning fw-bold">${dropCounts[item]}x</span> <span class="text-info">${item}</span></li>`,
+        )
+        .join("")
       : "<li class='text-secondary'>Nenhum item encontrado.</li>";
 
   // AGRUPAR STATUS DE LEVEL UP
@@ -1405,16 +1468,16 @@ function showDungeonSummary() {
   let levelUpsHtml =
     levelKeys.length > 0
       ? levelKeys
-          .map((name) => {
-            const data = groupedLevels[name];
-            return `
+        .map((name) => {
+          const data = groupedLevels[name];
+          return `
           <div class="mb-2 p-2 border border-success rounded bg-dark">
             <strong class="text-success">⬆️ ${name} evoluiu do Nível ${data.startLevel} > ${data.endLevel}!</strong><br>
             <small class="text-light">+ ${data.hpInc} HP | + ${data.atkInc} ATQ | + ${data.defInc} DEF</small>
           </div>
         `;
-          })
-          .join("")
+        })
+        .join("")
       : "<p class='text-secondary'>Ninguém subiu de nível desta vez.</p>";
 
   modalSummaryContent.innerHTML = `
@@ -1451,9 +1514,6 @@ btnFlee.addEventListener("click", () => {
 // ==========================================
 // 12. INVENTÁRIO
 // ==========================================
-const modalInventory = document.getElementById("modal-inventory");
-const inventoryContent = document.getElementById("inventory-content");
-const btnCloseInventory = document.getElementById("btn-close-inventory");
 
 // Fechar Inventario
 btnCloseInventory.addEventListener("click", () => {
@@ -1523,9 +1583,23 @@ document.getElementById("nav-btn-inventory").addEventListener("click", () => {
 // ==========================================
 // 13. SISTEMA DE EQUIPAMENTOS
 // ==========================================
+// Função para salvar imediatamente as trocas de equipamento
+function saveEquipState() {
+  fetch("http://localhost:3000/api/save-progress", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, dungeonsCleared: myGroup.dungeonsCleared, gold: myGroup.gold, inventory: playerInventory })
+  });
+  fetch("http://localhost:3000/api/save-team", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } })
+  });
+}
+
 // Abre a lista de itens compativeis
 window.openEquipSelect = function (heroId, type) {
-  const hero = myGroup.members.find((h) => h.id === heroId);
+  const hero = playerRoster.find((h) => h.id === heroId);
 
   // Filtra o inventario
   const availableItems = playerInventory.filter((bagItem) => {
@@ -1581,13 +1655,13 @@ window.openEquipSelect = function (heroId, type) {
 
 // Retorna para tela principal do heroi
 window.showHeroDetailsById = function (heroId) {
-  const hero = myGroup.members.find((h) => h.id === heroId);
+  const hero = playerRoster.find((h) => h.id === heroId);
   showHeroDetails(hero);
 };
 
 // Logica de vestir armadura
 window.equipItem = function (heroId, type, itemId) {
-  const hero = myGroup.members.find((h) => h.id === heroId);
+  const hero = playerRoster.find((h) => h.id === heroId);
 
   // Se ja tem algo equipado, devolve pra mochila
   if (hero.equipment[type]) unequipItem(heroId, type, false);
@@ -1615,11 +1689,12 @@ window.equipItem = function (heroId, type, itemId) {
   // Atualiza a tela
   updateUI();
   showHeroDetails(hero);
+  saveEquipState();
 };
 
 // Logica de tirar armadura
 window.unequipItem = function (heroId, type, render = true) {
-  const hero = myGroup.members.find((h) => h.id === heroId);
+  const hero = playerRoster.find((h) => h.id === heroId);
   if (!hero.equipment[type]) return;
 
   const itemId = hero.equipment[type];
@@ -1646,16 +1721,12 @@ window.unequipItem = function (heroId, type, render = true) {
     updateUI();
     showHeroDetails(hero);
   }
+  saveEquipState();
 };
 
 // ==========================================
 // GAME OVER (PERDAS E GANHOS)
 // ==========================================
-const modalGameOver = document.getElementById("modal-game-over");
-const modalGameOverContent = document.getElementById("modal-game-over-content");
-const btnRetryDungeon = document.getElementById("btn-retry-dungeon");
-const btnReturnMap = document.getElementById("btn-return-map");
-
 function showGameOverScreen() {
   modalGameOver.classList.remove("d-none");
 
@@ -1692,11 +1763,11 @@ function showGameOverScreen() {
   let lostHtml =
     lostKeys.length > 0
       ? lostKeys
-          .map(
-            (item) =>
-              `<li><span class="text-danger fw-bold">-${dropCounts[item]}x</span> <span class="text-secondary text-decoration-line-through">${item}</span></li>`,
-          )
-          .join("")
+        .map(
+          (item) =>
+            `<li><span class="text-danger fw-bold">-${dropCounts[item]}x</span> <span class="text-secondary text-decoration-line-through">${item}</span></li>`,
+        )
+        .join("")
       : "<li class='text-secondary'>Nenhum equipamento foi perdido.</li>";
 
   // Monta a interface
@@ -1721,6 +1792,7 @@ function showGameOverScreen() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username: currentUser,
+      slotIndex: currentSlotIndex,
       dungeonsCleared: myGroup.dungeonsCleared,
       gold: myGroup.gold,
       inventory: playerInventory, // Salva o inventario sem os itens perdidos
@@ -1731,13 +1803,13 @@ function showGameOverScreen() {
   fetch("http://localhost:3000/api/save-team", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUser, team: myGroup.members }),
+    body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } }),
   });
 }
 
 // Funcao para reviver os herois mortos
 function healTeamForNextRun() {
-  myGroup.members.forEach((hero) => {
+  playerRoster.forEach((hero) => {
     hero.stats.current_hp = hero.stats.max_hp;
   });
 }
@@ -1755,4 +1827,148 @@ btnRetryDungeon.addEventListener("click", () => {
   healTeamForNextRun();
   gameState.currentRoom = 1;
   startRoom();
+});
+
+// ==========================================
+// 14. SISTEMA DE LOJA E GACHA 
+// ==========================================
+// ==========================================
+// 14. SISTEMA DE LOJA E GACHA (INVOCAÇÃO)
+// ==========================================
+const btnNavShop = document.getElementById("nav-btn-shop");
+const btnOpenGacha = document.getElementById("btn-open-gacha");
+
+const modalGacha = document.getElementById("modal-gacha");
+const btnCloseGacha = document.getElementById("btn-close-gacha");
+const btnRollGacha = document.getElementById("btn-roll-gacha");
+const gachaResult = document.getElementById("gacha-result");
+const gachaGoldDisplay = document.getElementById("gacha-gold-display");
+
+// 1. Abre a Loja a partir da Home
+if (btnNavShop) {
+  btnNavShop.addEventListener("click", () => {
+    showScreen("screen-shop");
+    if (shopGoldCounter) shopGoldCounter.innerText = myGroup.gold;
+  });
+}
+
+// 2. Abre o Modal do Gacha a partir da Loja
+if (btnOpenGacha) {
+  btnOpenGacha.addEventListener("click", () => {
+    if (modalGacha) {
+      modalGacha.classList.remove("d-none");
+      if (gachaGoldDisplay) gachaGoldDisplay.innerText = myGroup.gold;
+      if (gachaResult) gachaResult.classList.add("d-none");
+      if (gachaResult) gachaResult.style.transform = "scale(0.8)";
+    }
+  });
+}
+
+// 3. Fecha o Gacha
+if (btnCloseGacha) {
+  btnCloseGacha.addEventListener("click", () => {
+    modalGacha.classList.add("d-none");
+    renderHome(); // Atualiza a Home para mostrar caso tenha vindo herói novo pro time
+  });
+}
+
+// 4. Lógica de Rolar (Sortear Herói)
+if (btnRollGacha) {
+  btnRollGacha.addEventListener("click", () => {
+    const GACHA_COST = 500;
+
+    if (myGroup.gold < GACHA_COST) {
+      alert("Ouro insuficiente! Vá explorar Dungeons para conseguir mais.");
+      return;
+    }
+
+    // Gasta o Ouro e desativa botão pra não clicar 2x rápido
+    myGroup.gold -= GACHA_COST;
+    gachaGoldDisplay.innerText = myGroup.gold;
+    btnRollGacha.disabled = true;
+    gachaResult.classList.add("d-none");
+
+    // Animação de suspense
+    setTimeout(() => {
+      // SORTEIO (RNG)
+      const randomIndex = Math.floor(Math.random() * database.characters.length);
+      const pulledHeroDb = database.characters[randomIndex];
+
+      // Verifica se já temos ele na coleção
+      const ownedHero = playerRoster.find(h => h.id === pulledHeroDb.id);
+      let resultMessage = "";
+
+      if (ownedHero) {
+        // VEIO REPETIDO: Sobe 1 level e ganha status!
+        ownedHero.level = (ownedHero.level || 1) + 1;
+        const growth = ownedHero.growth || { hp: 15, attack: 2, defense: 2, speed: 1 };
+        ownedHero.stats.max_hp += growth.hp;
+        ownedHero.stats.current_hp += growth.hp;
+        ownedHero.stats.base_attack += growth.attack;
+        ownedHero.stats.base_defense += growth.defense;
+        ownedHero.stats.speed += growth.speed;
+
+        resultMessage = `<h4 class="text-info mt-2">DUPLICATA!</h4>
+                         <p class="text-light mb-0">Seu ${ownedHero.name} subiu para o Nível ${ownedHero.level}!</p>`;
+      } else {
+        // NOVO HERÓI: Adiciona na Coleção!
+        playerRoster.push(structuredClone(pulledHeroDb));
+        resultMessage = `<h4 class="text-success mt-2">NOVO HERÓI DESBLOQUEADO!</h4>
+                         <p class="text-light mb-0">Você agora pode equipá-lo na Taverna!</p>`;
+      }
+
+      // Salvar no Banco de Dados imediatamente
+      fetch("http://localhost:3000/api/save-progress", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, dungeonsCleared: myGroup.dungeonsCleared, gold: myGroup.gold, inventory: playerInventory })
+      });
+      fetch("http://localhost:3000/api/save-team", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } })
+      });
+
+      // Exibir na tela
+      gachaResult.innerHTML = `
+        <i class="bi bi-stars text-warning mb-2" style="font-size: 3rem;"></i>
+        <h2 class="text-warning">${pulledHeroDb.name}</h2>
+        <div class="mb-2">${getStarsHTML(pulledHeroDb.stars)}</div>
+        <span class="badge bg-secondary mb-3">${pulledHeroDb.role}</span>
+        <hr class="border-secondary">
+        ${resultMessage}
+      `;
+
+      gachaResult.classList.remove("d-none");
+
+      // Efeito de "Pulo" do card
+      setTimeout(() => { gachaResult.style.transform = "scale(1)"; }, 50);
+
+      btnRollGacha.disabled = false;
+    }, 800); // 800ms de suspense
+  });
+}
+
+// ==========================================
+// BOTÃO DE CONFIRMAR O GACHA INICIAL
+// ==========================================
+document.getElementById("btn-confirm-initial").addEventListener("click", async () => {
+  document.getElementById("modal-initial-gacha").classList.add("d-none");
+
+  // Já salva esse time inicial no servidor para garantir que o slot deixe de ser "Vazio"
+  try {
+    await fetch("http://localhost:3000/api/save-team", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: currentUser,
+        slotIndex: currentSlotIndex,
+        team: { roster: playerRoster, activeIds: activeTeamIds }
+      }),
+    });
+  } catch (err) {
+    console.error("Erro ao salvar time inicial:", err);
+  }
+
+  // Vai para a Base
+  renderHome();
+  showScreen("screen-home");
 });

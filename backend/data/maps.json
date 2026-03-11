@@ -2,10 +2,21 @@
   {
     "id": "map_1",
     "name": "Caverna dos Goblins",
-    "mobsNormal": ["Slime Verde", "Morcego Gigante", "Goblin Menor"],
-    "mobsElite": ["Goblin Guerreiro", "Lobo Atroz"],
-    "miniBoss": ["Xamã Goblin"],
-    "boss": ["Rei Goblin"],
+    "mobsNormal": [
+      "Slime Verde",
+      "Morcego Gigante",
+      "Goblin Menor"
+    ],
+    "mobsElite": [
+      "Goblin Guerreiro",
+      "Lobo Atroz"
+    ],
+    "miniBoss": [
+      "Xamã Goblin"
+    ],
+    "boss": [
+      "Rei Goblin"
+    ],
     "dungeons": [
       {
         "name": "1. Entrada da Caverna",
@@ -30,10 +41,21 @@
   {
     "id": "map_2",
     "name": "Cidade Soterrada",
-    "mobsNormal": ["Esqueleto Raso", "Rato Zumbi", "Ladrão de Tumbas"],
-    "mobsElite": ["Cavaleiro Caído", "Aparição Sombria"],
-    "miniBoss": ["Necromante Aprendiz"],
-    "boss": ["Lorde Esqueleto"],
+    "mobsNormal": [
+      "Esqueleto Raso",
+      "Rato Zumbi",
+      "Ladrão de Tumbas"
+    ],
+    "mobsElite": [
+      "Cavaleiro Caído",
+      "Aparição Sombria"
+    ],
+    "miniBoss": [
+      "Necromante Aprendiz"
+    ],
+    "boss": [
+      "Lorde Esqueleto"
+    ],
     "dungeons": [
       {
         "name": "1. Portões de Ossos",
@@ -58,10 +80,21 @@
   {
     "id": "map_3",
     "name": "Pico Congelado",
-    "mobsNormal": ["Lobo do Gelo", "Elemental de Neve", "Yeti Jovem"],
-    "mobsElite": ["Golem de Gelo", "Bruxa da Nevasca"],
-    "miniBoss": ["Dragão Branco Filhote"],
-    "boss": ["Rei do Inverno"],
+    "mobsNormal": [
+      "Lobo do Gelo",
+      "Elemental de Neve",
+      "Yeti Jovem"
+    ],
+    "mobsElite": [
+      "Golem de Gelo",
+      "Bruxa da Nevasca"
+    ],
+    "miniBoss": [
+      "Dragão Branco Filhote"
+    ],
+    "boss": [
+      "Rei do Inverno"
+    ],
     "dungeons": [
       {
         "name": "1. Trilha da Nevasca",

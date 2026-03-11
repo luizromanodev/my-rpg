@@ -383,10 +383,30 @@
           opacity: 0;
         }
       }
+      .scale-up {
+        transform: scale(1.05);
+      }
     </style>
   </head>
   <body>
     <div class="container">
+      <div
+        id="screen-account-select"
+        class="row justify-content-center mt-5 text-center d-none"
+      >
+        <div class="col-md-8">
+          <h2 class="text-warning mb-4">
+            <i class="bi bi-controller"></i> Escolha sua Conta
+          </h2>
+          <div
+            id="account-list"
+            class="row justify-content-center gap-3 mb-4"
+          ></div>
+          <button id="btn-show-login" class="btn btn-outline-success fw-bold">
+            <i class="bi bi-person-plus-fill"></i> Adicionar Nova Conta
+          </button>
+        </div>
+      </div>
       <div
         id="screen-slot-select"
         class="row justify-content-center mt-5 text-center d-none"
@@ -460,10 +480,9 @@
           <div class="col-6 col-md-3">
             <button
               id="nav-btn-shop"
-              class="btn btn-secondary w-100 py-3 fw-bold shadow"
-              disabled
+              class="btn btn-warning w-100 py-3 fw-bold shadow text-dark"
             >
-              <i class="bi bi-shop fs-2 d-block mb-1"></i> Loja (Em Breve)
+              <i class="bi bi-shop fs-2 d-block mb-1"></i> Loja
             </button>
           </div>
         </div>
@@ -543,6 +562,77 @@
           >
             Selecione 3 Heróis (0/3)
           </button>
+        </div>
+      </div>
+      <div id="screen-shop" class="d-none mt-4">
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-2"
+        >
+          <h2 class="text-warning text-shadow m-0">
+            <i class="bi bi-shop"></i> Loja da Cidade
+          </h2>
+          <div class="d-flex gap-2 align-items-center">
+            <button
+              id="btn-back-home-shop"
+              class="btn btn-outline-light fw-bold shadow-sm"
+            >
+              <i class="bi bi-arrow-left"></i> Voltar à Base
+            </button>
+            <div
+              class="badge bg-warning text-dark fs-5 shadow-sm border border-dark"
+            >
+              <i class="bi bi-coin"></i> Ouro:
+              <span id="shop-gold-counter">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row justify-content-center g-4">
+          <div class="col-md-5">
+            <div
+              class="card p-4 border-warning h-100 text-center shadow-lg"
+              style="cursor: pointer; transition: 0.2s"
+              onmouseover="this.classList.add('scale-up')"
+              onmouseout="this.classList.remove('scale-up')"
+              id="btn-open-gacha"
+            >
+              <i
+                class="bi bi-stars text-warning mb-3"
+                style="font-size: 4rem"
+              ></i>
+              <h3 class="text-light">Altar de Invocação</h3>
+              <p class="text-secondary">
+                Gaste ouro para invocar novos heróis para sua coleção ou
+                fortalecer os que já possui.
+              </p>
+              <button class="btn btn-warning fw-bold w-100 mt-auto">
+                Acessar Gacha
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-5">
+            <div
+              class="card p-4 border-info h-100 text-center shadow-lg"
+              style="cursor: pointer; transition: 0.2s"
+              onmouseover="this.classList.add('scale-up')"
+              onmouseout="this.classList.remove('scale-up')"
+              onclick="alert('Mercador de itens em breve!')"
+            >
+              <i
+                class="bi bi-bag-heart-fill text-info mb-3"
+                style="font-size: 4rem"
+              ></i>
+              <h3 class="text-light">Mercador de Itens</h3>
+              <p class="text-secondary">
+                Compre poções de cura, armas e armaduras para fortalecer seu
+                time.
+              </p>
+              <button class="btn btn-info fw-bold w-100 mt-auto text-dark">
+                Acessar Mercador
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -642,7 +732,7 @@
                   class="btn btn-danger fw-bold shadow border-dark"
                   disabled
                 >
-                  <i class="bi bi-123"></i> ATACAR
+                  <i class="bi bi-lightning-fill"></i> ATACAR
                 </button>
                 <button
                   id="btn-skill"
@@ -832,6 +922,93 @@
           </button>
         </div>
       </div>
+    </div>
+    <div
+      id="modal-gacha"
+      class="d-none"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <h1 class="text-warning mb-4" style="text-shadow: 0 0 15px #f1c40f">
+        <i class="bi bi-stars"></i> ALTAR DE INVOCAÇÃO
+      </h1>
+
+      <div
+        id="gacha-result"
+        class="card bg-dark border-warning p-4 text-center shadow-lg d-none mb-4"
+        style="
+          max-width: 400px;
+          width: 90%;
+          transform: scale(0.8);
+          transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        "
+      ></div>
+
+      <div class="d-flex gap-3">
+        <button
+          id="btn-roll-gacha"
+          class="btn btn-danger btn-lg fw-bold shadow-lg"
+          style="box-shadow: 0 0 15px rgba(220, 53, 69, 0.5) !important"
+        >
+          <i class="bi bi-gem"></i> Invocar 1x (500 G)
+        </button>
+        <button
+          id="btn-close-gacha"
+          class="btn btn-outline-light btn-lg fw-bold"
+        >
+          Voltar
+        </button>
+      </div>
+      <p class="text-info mt-3 fw-bold">
+        Ouro atual: <span id="gacha-gold-display">0</span>
+      </p>
+    </div>
+    <div
+      id="modal-initial-gacha"
+      class="d-none"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <h1 class="text-warning mb-2" style="text-shadow: 0 0 15px #f1c40f">
+        <i class="bi bi-stars"></i> INVOCAÇÃO INICIAL
+      </h1>
+      <p class="text-light mb-4">
+        Os deuses rolaram os dados. Estes são os seus primeiros campeões:
+      </p>
+
+      <div
+        id="initial-gacha-results"
+        class="row justify-content-center gap-3 mb-4 w-100 px-3"
+      ></div>
+
+      <button
+        id="btn-confirm-initial"
+        class="btn btn-warning btn-lg fw-bold shadow-lg mt-3"
+      >
+        Começar Jornada <i class="bi bi-play-fill"></i>
+      </button>
     </div>
 
     <script type="module" src="index.js"></script>

@@ -214,94 +214,22 @@
         "team": {
           "roster": [
             {
-              "id": "c4",
-              "name": "Thalor, o Sacerdote",
-              "role": "Suporte",
-              "description": "Mantém a equipe viva com feitiços de cura.",
-              "stars": 3,
-              "level": 3,
-              "exp": {
-                "current": 175,
-                "max": 225
-              },
-              "stats": {
-                "max_hp": 140,
-                "current_hp": 140,
-                "base_attack": 16,
-                "base_defense": 14,
-                "speed": 14
-              },
-              "growth": {
-                "hp": 20,
-                "attack": 2,
-                "defense": 2,
-                "speed": 1
-              },
-              "inventory": [
-                {
-                  "item_id": 1,
-                  "quantity": 3
-                }
-              ],
-              "justTookDamage": false,
-              "justLeveledUp": false,
-              "oldLevelForAnim": 2
-            },
-            {
-              "id": "c3",
-              "name": "Lyra, a Tempestade",
-              "role": "Dano Mágico",
-              "description": "Uma lenda viva capaz de desintegrar exércitos.",
-              "stars": 5,
-              "level": 3,
-              "exp": {
-                "current": 50,
-                "max": 337
-              },
-              "stats": {
-                "max_hp": 280,
-                "current_hp": 280,
-                "base_attack": 61,
-                "base_defense": 21,
-                "speed": 22
-              },
-              "growth": {
-                "hp": 40,
-                "attack": 8,
-                "defense": 3,
-                "speed": 2
-              },
-              "inventory": [
-                {
-                  "item_id": 1,
-                  "quantity": 3
-                }
-              ],
-              "justTookDamage": false,
-              "justLeveledUp": false,
-              "oldLevelForAnim": 2,
-              "equipment": {
-                "weapon": null,
-                "armor": null
-              }
-            },
-            {
               "id": "c2",
               "name": "Arthur, o Escudeiro",
               "role": "Tanque",
               "description": "Protege o time com escudos pesados e muita vida.",
               "stars": 3,
-              "level": 4,
+              "level": 1,
               "exp": {
-                "current": 175,
-                "max": 225
+                "current": 0,
+                "max": 100
               },
               "stats": {
-                "max_hp": 225,
-                "current_hp": 225,
-                "base_attack": 24,
-                "base_defense": 35,
-                "speed": 11
+                "max_hp": 150,
+                "current_hp": 150,
+                "base_attack": 15,
+                "base_defense": 20,
+                "speed": 8
               },
               "growth": {
                 "hp": 25,
@@ -314,16 +242,75 @@
                   "item_id": 1,
                   "quantity": 3
                 }
-              ],
-              "justLeveledUp": false,
-              "oldLevelForAnim": 2,
-              "justTookDamage": false
+              ]
+            },
+            {
+              "id": "c3",
+              "name": "Lyra, a Tempestade",
+              "role": "Dano Mágico",
+              "description": "Uma lenda viva capaz de desintegrar exércitos.",
+              "stars": 5,
+              "level": 1,
+              "exp": {
+                "current": 0,
+                "max": 150
+              },
+              "stats": {
+                "max_hp": 200,
+                "current_hp": 200,
+                "base_attack": 45,
+                "base_defense": 15,
+                "speed": 18
+              },
+              "growth": {
+                "hp": 40,
+                "attack": 8,
+                "defense": 3,
+                "speed": 2
+              },
+              "inventory": [
+                {
+                  "item_id": 1,
+                  "quantity": 3
+                }
+              ]
+            },
+            {
+              "id": "c4",
+              "name": "Thalor, o Sacerdote",
+              "role": "Suporte",
+              "description": "Mantém a equipe viva com feitiços de cura.",
+              "stars": 3,
+              "level": 1,
+              "exp": {
+                "current": 0,
+                "max": 100
+              },
+              "stats": {
+                "max_hp": 100,
+                "current_hp": 100,
+                "base_attack": 12,
+                "base_defense": 10,
+                "speed": 12
+              },
+              "growth": {
+                "hp": 20,
+                "attack": 2,
+                "defense": 2,
+                "speed": 1
+              },
+              "inventory": [
+                {
+                  "item_id": 1,
+                  "quantity": 3
+                }
+              ]
             }
           ],
           "activeIds": [
-            "c4",
+            "c2",
             "c3",
-            "c2"
+            "c4"
           ]
         },
         "inventory": [

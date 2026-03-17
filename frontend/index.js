@@ -67,10 +67,12 @@ document.getElementById("btn-back-home-map").addEventListener("click", () => {
   renderHome();
   showScreen("screen-home");
 });
-document.getElementById("btn-back-home-tavern").addEventListener("click", () => {
-  renderHome();
-  showScreen("screen-home");
-});
+document
+  .getElementById("btn-back-home-tavern")
+  .addEventListener("click", () => {
+    renderHome();
+    showScreen("screen-home");
+  });
 
 document.getElementById("btn-back-home-shop").addEventListener("click", () => {
   renderHome();
@@ -85,7 +87,7 @@ let currentSlotIndex = null;
 let playerInventory = [];
 
 let playerRoster = [];
-let activeTeamIds = []
+let activeTeamIds = [];
 
 let myGroup = {
   name: "Grupo do Herói",
@@ -157,7 +159,7 @@ function showScreen(screenId) {
   screenHome.classList.add("d-none");
   screenTavern.classList.add("d-none");
   screenMap.classList.add("d-none");
-  screenShop.classList.add("d-none")
+  screenShop.classList.add("d-none");
   screenBattle.classList.add("d-none");
 
   document.getElementById(screenId).classList.remove("d-none");
@@ -305,17 +307,17 @@ window.selectSlot = function (index, isOccupied) {
       activeTeamIds = slotData.team.activeIds || [];
     } else {
       playerRoster = slotData.team || [];
-      activeTeamIds = playerRoster.map(h => h.id)
+      activeTeamIds = playerRoster.map((h) => h.id);
     }
 
     if (playerRoster.length === 0 && database.characters.length >= 3) {
       playerRoster.push(structuredClone(database.characters[0]));
       playerRoster.push(structuredClone(database.characters[1]));
       playerRoster.push(structuredClone(database.characters[2]));
-      activeTeamIds = playerRoster.map(h => h.id);
+      activeTeamIds = playerRoster.map((h) => h.id);
     }
 
-    myGroup.members = playerRoster.filter(h => activeTeamIds.includes(h.id));
+    myGroup.members = playerRoster.filter((h) => activeTeamIds.includes(h.id));
 
     if (slotData.dungeonState) {
       // Restaura Batalha
@@ -360,14 +362,14 @@ window.selectSlot = function (index, isOccupied) {
 
     // Define o time inicial
     playerRoster = initialHeroes;
-    activeTeamIds = initialHeroes.map(h => h.id);
+    activeTeamIds = initialHeroes.map((h) => h.id);
     myGroup.members = playerRoster;
 
     // Renderiza os 3 heróis sorteados na tela
     const resultsContainer = document.getElementById("initial-gacha-results");
     resultsContainer.innerHTML = "";
 
-    initialHeroes.forEach(hero => {
+    initialHeroes.forEach((hero) => {
       const col = document.createElement("div");
       col.className = "col-10 col-md-3 mb-2";
       col.innerHTML = `
@@ -420,7 +422,11 @@ btnStartAdventure.addEventListener("click", async () => {
     await fetch("http://localhost:3000/api/save-team", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } }),
+      body: JSON.stringify({
+        username: currentUser,
+        slotIndex: currentSlotIndex,
+        team: { roster: playerRoster, activeIds: activeTeamIds },
+      }),
     });
     console.log("Time salvo no servidor com sucesso!");
   } catch (err) {
@@ -457,7 +463,10 @@ function renderTavern() {
 
   btnStartAdventure.disabled = activeTeamIds.length !== 3;
   btnStartAdventure.innerText = `Confirmar Time (${activeTeamIds.length}/3)`;
-  btnStartAdventure.className = activeTeamIds.length === 3 ? "btn btn-warning btn-lg fw-bold shadow mt-3" : "btn btn-secondary btn-lg fw-bold shadow mt-3";
+  btnStartAdventure.className =
+    activeTeamIds.length === 3
+      ? "btn btn-warning btn-lg fw-bold shadow mt-3"
+      : "btn btn-secondary btn-lg fw-bold shadow mt-3";
 
   // Varre TODOS os personagens que existem no banco de dados
   database.characters.forEach((dbChar) => {
@@ -466,12 +475,12 @@ function renderTavern() {
     const card = document.createElement("div");
 
     // Verifica se o jogador já possui este herói na coleção
-    const ownedHero = playerRoster.find(h => h.id === dbChar.id);
+    const ownedHero = playerRoster.find((h) => h.id === dbChar.id);
     const isSelected = activeTeamIds.includes(dbChar.id);
 
     if (ownedHero) {
       // === HERÓI DESBLOQUEADO ===
-      card.className = `card p-3 h-100 text-start ${isSelected ? 'border-warning shadow-lg' : 'border-secondary'}`;
+      card.className = `card p-3 h-100 text-start ${isSelected ? "border-warning shadow-lg" : "border-secondary"}`;
       card.style.cursor = "pointer";
       card.style.transition = "transform 0.2s, border-color 0.2s";
       if (isSelected) card.style.transform = "scale(1.05)";
@@ -490,25 +499,27 @@ function renderTavern() {
           <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); showHeroDetailsById('${ownedHero.id}')">
             <i class="bi bi-gear-fill"></i> Equipar
           </button>
-          ${isSelected ? '<span class="badge bg-warning text-dark"><i class="bi bi-check-circle-fill"></i> No Time</span>' : ''}
+          ${isSelected ? '<span class="badge bg-warning text-dark"><i class="bi bi-check-circle-fill"></i> No Time</span>' : ""}
         </div>
       `;
 
       card.addEventListener("click", () => {
         if (isSelected) {
-          activeTeamIds = activeTeamIds.filter(id => id !== ownedHero.id);
+          activeTeamIds = activeTeamIds.filter((id) => id !== ownedHero.id);
         } else {
           if (activeTeamIds.length < 3) activeTeamIds.push(ownedHero.id);
           else return alert("Você só pode levar 3 heróis para a batalha!");
         }
         // Atualiza a equipe ativa e re-renderiza
-        myGroup.members = playerRoster.filter(h => activeTeamIds.includes(h.id));
+        myGroup.members = playerRoster.filter((h) =>
+          activeTeamIds.includes(h.id),
+        );
         renderTavern();
       });
-
     } else {
       // === HERÓI BLOQUEADO ===
-      card.className = "card p-3 h-100 text-center border-secondary bg-dark opacity-50";
+      card.className =
+        "card p-3 h-100 text-center border-secondary bg-dark opacity-50";
       card.innerHTML = `
         <i class="bi bi-lock-fill text-secondary" style="font-size: 3rem;"></i>
         <h5 class="text-secondary mt-2">${dbChar.name}</h5>
@@ -1203,7 +1214,7 @@ function checkBattleEnd() {
         body: JSON.stringify({
           username: currentUser,
           slotIndex: currentSlotIndex,
-          team: { roster: playerRoster, activeIds: activeTeamIds }
+          team: { roster: playerRoster, activeIds: activeTeamIds },
         }),
       })
         .then((res) => res.json())
@@ -1436,11 +1447,11 @@ function showDungeonSummary() {
   let dropsHtml =
     dropKeys.length > 0
       ? dropKeys
-        .map(
-          (item) =>
-            `<li><span class="text-warning fw-bold">${dropCounts[item]}x</span> <span class="text-info">${item}</span></li>`,
-        )
-        .join("")
+          .map(
+            (item) =>
+              `<li><span class="text-warning fw-bold">${dropCounts[item]}x</span> <span class="text-info">${item}</span></li>`,
+          )
+          .join("")
       : "<li class='text-secondary'>Nenhum item encontrado.</li>";
 
   // AGRUPAR STATUS DE LEVEL UP
@@ -1468,16 +1479,16 @@ function showDungeonSummary() {
   let levelUpsHtml =
     levelKeys.length > 0
       ? levelKeys
-        .map((name) => {
-          const data = groupedLevels[name];
-          return `
+          .map((name) => {
+            const data = groupedLevels[name];
+            return `
           <div class="mb-2 p-2 border border-success rounded bg-dark">
             <strong class="text-success">⬆️ ${name} evoluiu do Nível ${data.startLevel} > ${data.endLevel}!</strong><br>
             <small class="text-light">+ ${data.hpInc} HP | + ${data.atkInc} ATQ | + ${data.defInc} DEF</small>
           </div>
         `;
-        })
-        .join("")
+          })
+          .join("")
       : "<p class='text-secondary'>Ninguém subiu de nível desta vez.</p>";
 
   modalSummaryContent.innerHTML = `
@@ -1588,12 +1599,22 @@ function saveEquipState() {
   fetch("http://localhost:3000/api/save-progress", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, dungeonsCleared: myGroup.dungeonsCleared, gold: myGroup.gold, inventory: playerInventory })
+    body: JSON.stringify({
+      username: currentUser,
+      slotIndex: currentSlotIndex,
+      dungeonsCleared: myGroup.dungeonsCleared,
+      gold: myGroup.gold,
+      inventory: playerInventory,
+    }),
   });
   fetch("http://localhost:3000/api/save-team", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } })
+    body: JSON.stringify({
+      username: currentUser,
+      slotIndex: currentSlotIndex,
+      team: { roster: playerRoster, activeIds: activeTeamIds },
+    }),
   });
 }
 
@@ -1763,11 +1784,11 @@ function showGameOverScreen() {
   let lostHtml =
     lostKeys.length > 0
       ? lostKeys
-        .map(
-          (item) =>
-            `<li><span class="text-danger fw-bold">-${dropCounts[item]}x</span> <span class="text-secondary text-decoration-line-through">${item}</span></li>`,
-        )
-        .join("")
+          .map(
+            (item) =>
+              `<li><span class="text-danger fw-bold">-${dropCounts[item]}x</span> <span class="text-secondary text-decoration-line-through">${item}</span></li>`,
+          )
+          .join("")
       : "<li class='text-secondary'>Nenhum equipamento foi perdido.</li>";
 
   // Monta a interface
@@ -1803,7 +1824,11 @@ function showGameOverScreen() {
   fetch("http://localhost:3000/api/save-team", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } }),
+    body: JSON.stringify({
+      username: currentUser,
+      slotIndex: currentSlotIndex,
+      team: { roster: playerRoster, activeIds: activeTeamIds },
+    }),
   });
 }
 
@@ -1830,7 +1855,7 @@ btnRetryDungeon.addEventListener("click", () => {
 });
 
 // ==========================================
-// 14. SISTEMA DE LOJA E GACHA 
+// 14. SISTEMA DE LOJA E GACHA
 // ==========================================
 const btnNavShop = document.getElementById("nav-btn-shop");
 const btnOpenGacha = document.getElementById("btn-open-gacha");
@@ -1888,17 +1913,24 @@ if (btnRollGacha) {
     // Animação de suspense
     setTimeout(() => {
       // SORTEIO (RNG)
-      const randomIndex = Math.floor(Math.random() * database.characters.length);
+      const randomIndex = Math.floor(
+        Math.random() * database.characters.length,
+      );
       const pulledHeroDb = database.characters[randomIndex];
 
       // Verifica se já temos ele na coleção
-      const ownedHero = playerRoster.find(h => h.id === pulledHeroDb.id);
+      const ownedHero = playerRoster.find((h) => h.id === pulledHeroDb.id);
       let resultMessage = "";
 
       if (ownedHero) {
         // VEIO REPETIDO: Sobe 1 level e ganha status!
         ownedHero.level = (ownedHero.level || 1) + 1;
-        const growth = ownedHero.growth || { hp: 15, attack: 2, defense: 2, speed: 1 };
+        const growth = ownedHero.growth || {
+          hp: 15,
+          attack: 2,
+          defense: 2,
+          speed: 1,
+        };
         ownedHero.stats.max_hp += growth.hp;
         ownedHero.stats.current_hp += growth.hp;
         ownedHero.stats.base_attack += growth.attack;
@@ -1916,12 +1948,24 @@ if (btnRollGacha) {
 
       // Salvar no Banco de Dados imediatamente
       fetch("http://localhost:3000/api/save-progress", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, dungeonsCleared: myGroup.dungeonsCleared, gold: myGroup.gold, inventory: playerInventory })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: currentUser,
+          slotIndex: currentSlotIndex,
+          dungeonsCleared: myGroup.dungeonsCleared,
+          gold: myGroup.gold,
+          inventory: playerInventory,
+        }),
       });
       fetch("http://localhost:3000/api/save-team", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser, slotIndex: currentSlotIndex, team: { roster: playerRoster, activeIds: activeTeamIds } })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: currentUser,
+          slotIndex: currentSlotIndex,
+          team: { roster: playerRoster, activeIds: activeTeamIds },
+        }),
       });
 
       // Exibir na tela
@@ -1937,7 +1981,9 @@ if (btnRollGacha) {
       gachaResult.classList.remove("d-none");
 
       // Efeito de "Pulo" do card
-      setTimeout(() => { gachaResult.style.transform = "scale(1)"; }, 50);
+      setTimeout(() => {
+        gachaResult.style.transform = "scale(1)";
+      }, 50);
 
       btnRollGacha.disabled = false;
     }, 800); // 800ms de suspense
@@ -1947,25 +1993,173 @@ if (btnRollGacha) {
 // ==========================================
 // BOTÃO DE CONFIRMAR O GACHA INICIAL
 // ==========================================
-document.getElementById("btn-confirm-initial").addEventListener("click", async () => {
-  document.getElementById("modal-initial-gacha").classList.add("d-none");
+document
+  .getElementById("btn-confirm-initial")
+  .addEventListener("click", async () => {
+    document.getElementById("modal-initial-gacha").classList.add("d-none");
 
-  // Já salva esse time inicial no servidor para garantir que o slot deixe de ser "Vazio"
-  try {
-    await fetch("http://localhost:3000/api/save-team", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: currentUser,
-        slotIndex: currentSlotIndex,
-        team: { roster: playerRoster, activeIds: activeTeamIds }
-      }),
-    });
-  } catch (err) {
-    console.error("Erro ao salvar time inicial:", err);
+    // Já salva esse time inicial no servidor para garantir que o slot deixe de ser "Vazio"
+    try {
+      await fetch("http://localhost:3000/api/save-team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: currentUser,
+          slotIndex: currentSlotIndex,
+          team: { roster: playerRoster, activeIds: activeTeamIds },
+        }),
+      });
+    } catch (err) {
+      console.error("Erro ao salvar time inicial:", err);
+    }
+
+    // Vai para a Base
+    renderHome();
+    showScreen("screen-home");
+  });
+
+// ==========================================
+// 15. MERCADOR DE ITENS
+// ==========================================
+const btnOpenItemShop = document.getElementById("btn-open-item-shop");
+const modalItemShop = document.getElementById("modal-item-shop");
+const btnCloseItemShop = document.getElementById("btn-close-item-shop");
+const itemShopContent = document.getElementById("item-shop-content");
+const itemShopGold = document.getElementById("item-shop-gold");
+
+// Abrir e fechar mercador
+if (btnOpenItemShop) {
+  btnOpenItemShop.addEventListener("click", () => {
+    modalItemShop.classList.add("d-none");
+    renderItemShop();
+  });
+}
+
+if (btnCloseItemShop) {
+  btnCloseItemShop.addEventListener("click", () => {
+    modalItemShop.classList.add("d-none");
+    if (document.getElementById("shop-gold-counter")) {
+      document.getElementById("shop-gold-counter").innerText = myGroup.gold;
+    }
+  });
+}
+
+// Renderizar as Prateleiras da Loja
+function renderItemShop() {
+  itemShopGold.innerText = myGroup.gold;
+  itemShopContent.innerHTML = "";
+
+  // Tabela de Preços (Se o item no JSON não tiver a tag "price")
+  const getPrice = (item) => {
+    if (item.price) return item.price;
+    if (item.type === "consumable") return 50;
+    switch (item.rarity) {
+      case "incomum":
+        return 150;
+      case "raro":
+        return 400;
+      case "épico":
+        return 1000;
+      case "lendário":
+        return 3000;
+      default:
+        return 100;
+    }
+  };
+
+  // Carrega todos os itens do banco de dados na loja
+  database.items.forEach((item) => {
+    const price = getPrice(item);
+
+    // Cores e Ícones
+    let rarityBorder = "border-secondary";
+    let rarityText = "text-light";
+    if (item.rarity === "incomum") {
+      rarityBorder = "border-success";
+      rarityText = "text-success";
+    }
+    if (item.rarity === "raro") {
+      rarityBorder = "border-info";
+      rarityText = "text-info";
+    }
+    if (item.rarity === "épico") {
+      rarityBorder = "border-primary";
+      rarityText = "text-primary";
+    }
+    if (item.rarity === "lendário") {
+      rarityBorder = "border-warning";
+      rarityText = "text-warning";
+    }
+
+    let icon = "<i class='bi bi-box'></i>";
+    if (item.type === "weapon") icon = "<i class='bi bi-sword'></i>";
+    if (item.type === "armor") icon = "<i class='bi bi-shield'></i>";
+    if (item.type === "consumable") icon = "<i class='bi bi-bandaid'></i>";
+
+    // Mostra os status bônus na tela da loja
+    let statsStr = "";
+    if (item.stats) {
+      if (item.stats.attack) statsStr += `+${item.stats.attack} ATQ | `;
+      if (item.stats.defense) statsStr += `+${item.stats.defense} DEF | `;
+      if (item.stats.max_hp) statsStr += `+${item.stats.max_hp} HP | `;
+      if (item.stats.speed) statsStr += `+${item.stats.speed} VEL`;
+    }
+
+    const col = document.createElement("div");
+    col.className = "col-md-6 mb-2";
+    col.innerHTML = `
+      <div class="card bg-dark p-3 h-100 ${rarityBorder}" style="border-width: 2px;">
+        <div class="d-flex justify-content-between align-items-start">
+          <strong class="${rarityText} fs-5">${icon} ${item.name}</strong>
+          <span class="badge bg-warning text-dark fs-6 shadow-sm"><i class="bi bi-coin"></i> ${price}</span>
+        </div>
+        <small class="text-secondary d-block mb-1 text-capitalize">${item.type} • ${item.rarity}</small>
+        <p class="mb-1 text-light" style="font-size: 0.85rem;">${item.description}</p>
+        <p class="mb-2 text-success fw-bold" style="font-size: 0.8rem;">${statsStr}</p>
+        ${item.allowedClasses ? `<small class="text-warning d-block mb-3" style="font-size: 0.75rem;">Equipável por: ${item.allowedClasses.join(", ")}</small>` : ""}
+        <button class="btn btn-outline-info btn-sm w-100 mt-auto fw-bold" onclick="buyItem(${item.id}, ${price})">
+          <i class="bi bi-cart-plus"></i> Comprar Item
+        </button>
+      </div>
+    `;
+    itemShopContent.appendChild(col);
+  });
+}
+
+// Lógica de Compra e Salvamento
+window.buyItem = function (itemId, price) {
+  if (myGroup.gold < price) {
+    alert("Ouro insuficiente! Explore dungeons para conseguir mais.");
+    return;
   }
 
-  // Vai para a Base
-  renderHome();
-  showScreen("screen-home");
-});
+  // Desconta o dinheiro
+  myGroup.gold -= price;
+
+  // Põe na mochila
+  const itemInBag = playerInventory.find((i) => i.item_id === itemId);
+  if (itemInBag) {
+    itemInBag.quantity += 1;
+  } else {
+    playerInventory.push({ item_id: itemId, quantity: 1 });
+  }
+
+  // Atualiza as moedas na UI do Modal e da Loja
+  itemShopGold.innerText = myGroup.gold;
+  if (document.getElementById("shop-gold-counter")) {
+    document.getElementById("shop-gold-counter").innerText = myGroup.gold;
+  }
+
+  // Salva IMEDIATAMENTE no banco de dados
+  fetch("http://localhost:3000/api/save-progress", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: currentUser,
+      slotIndex: currentSlotIndex,
+      dungeonsCleared: myGroup.dungeonsCleared,
+      gold: myGroup.gold,
+      inventory: playerInventory,
+    }),
+  });
+};

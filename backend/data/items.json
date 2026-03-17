@@ -6,9 +6,7 @@
     "rarity": "comum",
     "value": 50,
     "description": "Restaura 50 de HP.",
-    "allowedClasses": [
-      "Todas"
-    ]
+    "allowedClasses": ["Todas"]
   },
   {
     "id": 2,
@@ -17,9 +15,7 @@
     "rarity": "incomum",
     "value": 150,
     "description": "Restaura 150 de HP.",
-    "allowedClasses": [
-      "Todas"
-    ]
+    "allowedClasses": ["Todas"]
   },
   {
     "id": 3,
@@ -31,10 +27,7 @@
       "speed": 0
     },
     "description": "Uma espada pesada. +10 ATQ",
-    "allowedClasses": [
-      "Guerreiro",
-      "Tanque"
-    ]
+    "allowedClasses": ["Guerreiro", "Tanque"]
   },
   {
     "id": 4,
@@ -46,11 +39,7 @@
       "speed": 2
     },
     "description": "Foco mágico simples. +8 ATQ, +2 VEL",
-    "allowedClasses": [
-      "Mago",
-      "Curandeiro",
-      "Suporte"
-    ]
+    "allowedClasses": ["Mago", "Curandeiro", "Suporte"]
   },
   {
     "id": 5,
@@ -62,10 +51,7 @@
       "speed": 10
     },
     "description": "Lâminas rápidas e mortais. +6 ATQ, +10 VEL",
-    "allowedClasses": [
-      "Assassino",
-      "Arqueiro"
-    ]
+    "allowedClasses": ["Assassino", "Arqueiro"]
   },
   {
     "id": 6,
@@ -77,9 +63,7 @@
       "max_hp": 20
     },
     "description": "Proteção básica. +5 DEF, +20 HP",
-    "allowedClasses": [
-      "Todas"
-    ]
+    "allowedClasses": ["Todas"]
   },
   {
     "id": 7,
@@ -91,12 +75,7 @@
       "speed": 5
     },
     "description": "Drop garantido do Chefe. +15 DEF, +5 VEL",
-    "allowedClasses": [
-      "Mago",
-      "Suporte",
-      "Curandeiro",
-      "Assassino"
-    ]
+    "allowedClasses": ["Mago", "Suporte", "Curandeiro", "Assassino"]
   },
   {
     "id": 8,
@@ -108,10 +87,7 @@
       "speed": -5
     },
     "description": "Arma dos Cavaleiros Caídos. +25 ATQ, -5 VEL",
-    "allowedClasses": [
-      "Guerreiro",
-      "Tanque"
-    ]
+    "allowedClasses": ["Guerreiro", "Tanque"]
   },
   {
     "id": 9,
@@ -123,10 +99,7 @@
       "max_hp": -10
     },
     "description": "Poder à custa de vida. +20 ATQ, -10 HP",
-    "allowedClasses": [
-      "Mago",
-      "Curandeiro"
-    ]
+    "allowedClasses": ["Mago", "Curandeiro"]
   },
   {
     "id": 10,
@@ -138,10 +111,7 @@
       "max_hp": 100
     },
     "description": "Forjada no coração da Cidade Soterrada. +35 DEF, +100 HP",
-    "allowedClasses": [
-      "Tanque",
-      "Guerreiro"
-    ]
+    "allowedClasses": ["Tanque", "Guerreiro"]
   },
   {
     "id": 11,
@@ -153,10 +123,7 @@
       "speed": 20
     },
     "description": "Sua flecha congela o ar. +40 ATQ, +20 VEL",
-    "allowedClasses": [
-      "Arqueiro",
-      "Assassino"
-    ]
+    "allowedClasses": ["Arqueiro", "Assassino"]
   },
   {
     "id": 12,
@@ -169,8 +136,6 @@
       "max_hp": 150
     },
     "description": "O poder absoluto do Pico Congelado. +50 DEF, +25 ATQ, +150 HP",
-    "allowedClasses": [
-      "Todas"
-    ]
+    "allowedClasses": ["Todas"]
   }
 ]

@@ -1832,9 +1832,6 @@ btnRetryDungeon.addEventListener("click", () => {
 // ==========================================
 // 14. SISTEMA DE LOJA E GACHA 
 // ==========================================
-// ==========================================
-// 14. SISTEMA DE LOJA E GACHA (INVOCAÇÃO)
-// ==========================================
 const btnNavShop = document.getElementById("nav-btn-shop");
 const btnOpenGacha = document.getElementById("btn-open-gacha");
 
